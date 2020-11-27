@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+					   xmlns:content="http://purl.org/rss/1.0/modules/content/"
+					   xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+					   xmlns:dc="http://purl.org/dc/elements/1.1/"
+					   xmlns:atom="http://www.w3.org/2005/Atom"
+					   xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+					   xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+					   xmlns:georss="http://www.georss.org/georss" xmlns:geo="http://www.w3.org/2003/01/geo/wgs84_pos#" xmlns:media="http://search.yahoo.com/mrss/"
+					   >
+
+  <channel>
+    <title>Stream Of Random Podcast</title>
+    <atom:link href="https://streamofrandompodcast.wordpress.com/feed/" rel="self" type="application/rss+xml" />
+    <link>https://streamofrandompodcast.wordpress.com</link>
+    <description></description>
+    <lastBuildDate>Fri, 27 Nov 2020 01:30:18 +0000</lastBuildDate>
+    <language>en</language>
+    <sy:updatePeriod>
+      hourly	</sy:updatePeriod>
+    <sy:updateFrequency>
+      1	</sy:updateFrequency>
+    <generator>http://wordpress.com/</generator>
+    <cloud domain='streamofrandompodcast.wordpress.com' port='80' path='/?rsscloud=notify' registerProcedure='' protocol='http-post' />
+    <image>
+      <url>https://s0.wp.com/i/buttonw-com.png</url>
+      <title>Stream Of Random Podcast</title>
+      <link>https://streamofrandompodcast.wordpress.com</link>
+    </image>
+    <atom:link rel="search" type="application/opensearchdescription+xml" href="https://streamofrandompodcast.wordpress.com/osd.xml" title="Stream Of Random Podcast" />
+    <atom:link rel='hub' href='https://streamofrandompodcast.wordpress.com/?pushpress=hub'/>
+
+    <item>
+      <title>Test of escaped RDFa</title>
+      <link>https://streamofrandompodcast.wordpress.com/2020/11/26/test-of-escaped-rdfa/</link>
+      <comments>https://streamofrandompodcast.wordpress.com/2020/11/26/test-of-escaped-rdfa/#respond</comments>
+      
+      <dc:creator><![CDATA[h4ck3rm1k3]]></dc:creator>
+      <pubDate>Fri, 27 Nov 2020 01:30:18 +0000</pubDate>
+      <category><![CDATA[Uncategorized]]></category>
+      <guid isPermaLink="false">http://streamofrandompodcast.wordpress.com/?p=55</guid>
+
+      <description><![CDATA[https://github.com/Escaped-RDFa/namespace/blob/main/tests/test_002_podcast_escaped.html Test of escaped RDFa &#60;div xmlns=&#8221;http://www.w3.org/1999/xhtml&#038;#8221; prefix=&#8221;eRDFa: https://escaped-rdfa.github.io/namespace/docs/1.0.html# itunes: http://www.itunes.com/dtds/podcast-1.0# rss: http://purl.org/rss/1.0/&#8221;&#038;gt; &#60;div rel=&#8221;eRDFa:embedded&#8221;&#62; &#60;div typeof=&#8221;rss:rss&#8221;&#62; &#60;div rel=&#8221;rss:channel&#8221;&#62; &#60;div typeof=&#8221;rss:item&#8221;&#62; &#60;div property=&#8221;rss:guid&#8221; content=&#8221;1b593f7b-67e7-454c-bb80-32e8e32ada06&#8243;&#62;&#60;/div&#62; &#60;div property=&#8221;rss:pubDate&#8221; content=&#8221;Mon, 22 Jun 2020 01:02:15 GMT&#8221;&#62;&#60;/div&#62; &#60;div property=&#8221;itunes:dtdepisodeType&#8221; content=&#8221;full&#8221;&#62;&#60;/div&#62; &#60;div property=&#8221;itunes:dtdexplicit&#8221; content=&#8221;No&#8221;&#62;&#60;/div&#62; &#60;div property=&#8221;rss:link&#8221; content=&#8221;https://anchor.fm/stre/episodes/StreamOfRandom-S3-The-Refinement-EP1-Quality-efo717&#8243;&#62;&#60;/div&#038;gt; &#60;div property=&#8221;itunes:dtdepisode&#8221; content=&#8221;1&#8243;&#62;&#60;/div&#62; &#60;div property=&#8221;itunes:dtdduration&#8221; content=&#8221;986&#8243;&#62;&#60;/div&#62; &#60;div property=&#8221;rss:enclosure&#8221; content=&#8221;&#8221;&#62;&#60;/div&#62; &#60;div property=&#8221;rss:title&#8221; content=&#8221;StreamOfRandom S3 The<a class="more-link" href="https://streamofrandompodcast.wordpress.com/2020/11/26/test-of-escaped-rdfa/">Continue reading <span class="screen-reader-text">"Test of escaped&#160;RDFa"</span></a>]]></description>
+      <content:encoded><![CDATA[
+<p><a href="https://github.com/Escaped-RDFa/namespace/blob/main/tests/test_002_podcast_escaped.html">https://github.com/Escaped-RDFa/namespace/blob/main/tests/test_002_podcast_escaped.html</a></p>
+
+
+	<p>Test of escaped RDFa</p>
+	<p>  &lt;div<br>
+	  xmlns=&#8221;<a href="http://www.w3.org/1999/xhtml&#038;#8221" rel="nofollow">http://www.w3.org/1999/xhtml&#038;#8221</a>;<br>
+	  prefix=&#8221;eRDFa: <a href="https://escaped-rdfa.github.io/namespace/docs/1.0.html#" rel="nofollow">https://escaped-rdfa.github.io/namespace/docs/1.0.html#</a><br>
+	  itunes: <a href="http://www.itunes.com/dtds/podcast-1.0#" rel="nofollow">http://www.itunes.com/dtds/podcast-1.0#</a><br>
+	  rss: <a href="http://purl.org/rss/1.0/&#8221;&#038;gt" rel="nofollow">http://purl.org/rss/1.0/&#8221;&#038;gt</a>;<br>
+	  &lt;div rel=&#8221;eRDFa:embedded&#8221;&gt;<br>
+	  &lt;div typeof=&#8221;rss:rss&#8221;&gt;<br>
+	  &lt;div rel=&#8221;rss:channel&#8221;&gt;<br>
+	  &lt;div typeof=&#8221;rss:item&#8221;&gt;<br>
+          &lt;div property=&#8221;rss:guid&#8221; content=&#8221;1b593f7b-67e7-454c-bb80-32e8e32ada06&#8243;&gt;&lt;/div&gt;<br>
+          &lt;div property=&#8221;rss:pubDate&#8221; content=&#8221;Mon, 22 Jun 2020 01:02:15 GMT&#8221;&gt;&lt;/div&gt;<br>
+          &lt;div property=&#8221;itunes:dtdepisodeType&#8221; content=&#8221;full&#8221;&gt;&lt;/div&gt;<br>
+          &lt;div property=&#8221;itunes:dtdexplicit&#8221; content=&#8221;No&#8221;&gt;&lt;/div&gt;<br>
+          &lt;div property=&#8221;rss:link&#8221; content=&#8221;<a href="https://anchor.fm/stre/episodes/StreamOfRandom-S3-The-Refinement-EP1-Quality-efo717&#8243;&gt;&lt;/div&#038;gt" rel="nofollow">https://anchor.fm/stre/episodes/StreamOfRandom-S3-The-Refinement-EP1-Quality-efo717&#8243;&gt;&lt;/div&#038;gt</a>;<br>
+          &lt;div property=&#8221;itunes:dtdepisode&#8221; content=&#8221;1&#8243;&gt;&lt;/div&gt;<br>
+          &lt;div property=&#8221;itunes:dtdduration&#8221; content=&#8221;986&#8243;&gt;&lt;/div&gt;<br>
+          &lt;div property=&#8221;rss:enclosure&#8221; content=&#8221;&#8221;&gt;&lt;/div&gt;<br>
+          &lt;div property=&#8221;rss:title&#8221; content=&#8221;StreamOfRandom S3 The Refinement EP1 Quality&#8221;&gt;&lt;/div&gt;<br>
+          &lt;div property=&#8221;itunes:dtdsummary&#8221; content=&#8221;Introduction to season 3&#8243;&gt;&lt;/div&gt;<br>
+          &lt;div property=&#8221;itunes:dtdimage&#8221; content=&#8221;&#8221;&gt;&lt;/div&gt;<br>
+          &lt;div property=&#8221;dc:creator&#8221; content=&#8221;Jim Dupont&#8221;&gt;&lt;/div&gt;<br>
+          &lt;div property=&#8221;itunes:dtdseason&#8221; content=&#8221;3&#8243;&gt;&lt;/div&gt;<br>
+	  &lt;/div&gt;<br>
+	  &lt;/div&gt;<br>
+	  &lt;/div&gt;<br>
+	  &lt;/div&gt;<br>
+	  &lt;/div&gt;</p>]]></content:encoded>
+      
+      <wfw:commentRss>https://streamofrandompodcast.wordpress.com/2020/11/26/test-of-escaped-rdfa/feed/</wfw:commentRss>
+      <slash:comments>0</slash:comments>
+      <media:content url="https://0.gravatar.com/avatar/cff24874f9655be6b8a602420a4f4384?s=96&#38;d=identicon&#38;r=G" medium="image">
+	<media:title type="html">h4ck3rm1k3</media:title>
+      </media:content>
+    </item>
+  </channel>
+</rss>
