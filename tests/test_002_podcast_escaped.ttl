@@ -1,0 +1,24 @@
+@prefix dc: <http://purl.org/dc/terms/> .
+@prefix erdfa: <https://escaped-rdfa.github.io/namespace/docs/1.0.html#> .
+@prefix itunes: <http://www.itunes.com/dtds/podcast-1.0#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rss: <http://purl.org/rss/1.0/> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<> erdfa:embedded [ a rss:rss ;
+            rss:channel [ a rss:item ;
+                    dc:creator "Jim Dupont" ;
+                    rss:enclosure "" ;
+                    rss:guid "1b593f7b-67e7-454c-bb80-32e8e32ada06" ;
+                    rss:link "https://anchor.fm/stre/episodes/StreamOfRandom-S3-The-Refinement-EP1-Quality-efo717" ;
+                    rss:pubDate "Mon, 22 Jun 2020 01:02:15 GMT" ;
+                    rss:title "StreamOfRandom S3 The Refinement EP1 Quality" ;
+                    itunes:dtdduration "986" ;
+                    itunes:dtdepisode "1" ;
+                    itunes:dtdepisodeType "full" ;
+                    itunes:dtdexplicit "No" ;
+                    itunes:dtdimage "" ;
+                    itunes:dtdseason "3" ;
+                    itunes:dtdsummary "Introduction to season 3" ] ] .

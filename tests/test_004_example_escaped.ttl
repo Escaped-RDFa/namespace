@@ -1,0 +1,14 @@
+@prefix erdfa: <https://escaped-rdfa.github.io/namespace/docs/1.0.html#> .
+@prefix itunes: <http://www.itunes.com/dtds/podcast-1.0#> .
+@prefix ns1: <http://www.w3.org/ns/rdfa#> .
+@prefix ns2: <http://xmlns.com/foaf/0.1/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rss: <http://purl.org/rss/1.0/> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<> ns1:usesVocabulary ns2: ;
+    erdfa:example <#me> .
+
+<#me> ns2:name "Gregg Kellogg" .
