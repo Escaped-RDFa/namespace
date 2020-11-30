@@ -30,3 +30,23 @@ Using the [html escaper](https://www.freeformatter.com/html-escape.html) we crea
 
 Here we just define a simple [example rdfa](tests/test_004_example_escaped.html)
 And we have the [turtle](tests/test_004_example_escaped.ttl).
+
+## Embedded RSS.
+
+In exploring the possiblities of simple free hosting of PHP I encountered multiple issues getting the right libraries installed and would like to fall back on 
+core php 7 for the implemention. For this purpose we want to skip the dependancy of https://www.easyrdf.org/ for parsing the RDFa documents and embed RSS directly.
+
+
+### Test 6 of embedded RSS
+
+This is for the entry of a podcast.
+
+[html](tests/test_006_erss_embed.html).
+[rss](tests/test_006_erss_embed.rss)
+
+### Test 6 of embedded RSS channel header 
+
+This is for the header of the podcast 
+
+[html](tests/test_006_erss_embed.html).
+[rss](tests/test_006_erss_embed.rss)
