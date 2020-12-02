@@ -1,0 +1,34 @@
+{
+  "@graph": [
+    {
+      "@id": "file:///opt/podcast/namespace/tests/test_001_podcast.ttl",
+      "https://escaped-rdfa.github.io/namespace/docs/1.0.html#embedded": {
+        "@id": "_:ub1bL9C19"
+      }
+    },
+    {
+      "@id": "_:ub1bL9C19",
+      "@type": "http://purl.org/rss/1.0/rss",
+      "http://purl.org/rss/1.0/channel": {
+        "@id": "_:ub1bL10C25"
+      }
+    },
+    {
+      "@id": "_:ub1bL10C25",
+      "@type": "http://purl.org/rss/1.0/item",
+      "http://purl.org/dc/terms/creator": "Jim Dupont",
+      "http://purl.org/rss/1.0/enclosure": "",
+      "http://purl.org/rss/1.0/guid": "1b593f7b-67e7-454c-bb80-32e8e32ada06",
+      "http://purl.org/rss/1.0/link": "https://anchor.fm/stre/episodes/StreamOfRandom-S3-The-Refinement-EP1-Quality-efo717",
+      "http://purl.org/rss/1.0/pubDate": "Mon, 22 Jun 2020 01:02:15 GMT",
+      "http://purl.org/rss/1.0/title": "StreamOfRandom S3 The Refinement EP1 Quality",
+      "http://www.itunes.com/dtds/podcast-1.0#dtdduration": "986",
+      "http://www.itunes.com/dtds/podcast-1.0#dtdepisode": "1",
+      "http://www.itunes.com/dtds/podcast-1.0#dtdepisodeType": "full",
+      "http://www.itunes.com/dtds/podcast-1.0#dtdexplicit": "No",
+      "http://www.itunes.com/dtds/podcast-1.0#dtdimage": "",
+      "http://www.itunes.com/dtds/podcast-1.0#dtdseason": "3",
+      "http://www.itunes.com/dtds/podcast-1.0#dtdsummary": "Introduction to season 3"
+    }
+  ]
+}

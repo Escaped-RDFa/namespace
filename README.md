@@ -50,3 +50,13 @@ This is for the header of the podcast
 
 [html](tests/test_006_erss_embed.html).
 [rss](tests/test_006_erss_embed.rss)
+
+
+### Test of encoding in query parameters
+
+Using the https://json-ld.org/playground/ we convert the [lsonld](tests/test_001_podcast.jsonld) into a compacter form.
+Then we use a patched version of https://github.com/Escaped-RDFa/nested-query-string to encode the data into query strings and the utility
+(json_to_url)[src/json_to_url.py] so that a query string encoded data in be passed to a program in a readable url. 
+I just tacked on the server name as an example. 
+
+looks like this [example](https://escaped-rdfa.github.io/processor?@graph[][@id]=file%3A///opt/podcast/namespace/tests/test_001_podcast.ttl&@graph[][https://escaped-rdfa.github.io/namespace/docs/1.0.html#embedded][@id]=_%3Aub1bL9C19&@graph[][@id]=_%3Aub1bL9C19&@graph[][@type]=http%3A//purl.org/rss/1.0/rss&@graph[][http://purl.org/rss/1.0/channel][@id]=_%3Aub1bL10C25&@graph[][@id]=_%3Aub1bL10C25&@graph[][@type]=http%3A//purl.org/rss/1.0/item&@graph[][http://purl.org/dc/terms/creator]=Jim%20Dupont&@graph[][http://purl.org/rss/1.0/enclosure]=&@graph[][http://purl.org/rss/1.0/guid]=1b593f7b-67e7-454c-bb80-32e8e32ada06&@graph[][http://purl.org/rss/1.0/link]=https%3A//anchor.fm/stre/episodes/StreamOfRandom-S3-The-Refinement-EP1-Quality-efo717&@graph[][http://purl.org/rss/1.0/pubDate]=Mon%2C%2022%20Jun%202020%2001%3A02%3A15%20GMT&@graph[][http://purl.org/rss/1.0/title]=StreamOfRandom%20S3%20The%20Refinement%20EP1%20Quality&@graph[][http://www.itunes.com/dtds/podcast-1.0#dtdduration]=986&@graph[][http://www.itunes.com/dtds/podcast-1.0#dtdepisode]=1&@graph[][http://www.itunes.com/dtds/podcast-1.0#dtdepisodeType]=full&@graph[][http://www.itunes.com/dtds/podcast-1.0#dtdexplicit]=No&@graph[][http://www.itunes.com/dtds/podcast-1.0#dtdimage]=&@graph[][http://www.itunes.com/dtds/podcast-1.0#dtdseason]=3&@graph[][http://www.itunes.com/dtds/podcast-1.0#dtdsummary]=Introduction%20to%20season%203)
