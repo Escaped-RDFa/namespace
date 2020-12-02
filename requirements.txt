@@ -1,0 +1,6 @@
+jsonurl
+click
+#PyLD
+rdflib-jsonld
+#nested_query_string
+-e git+https://github.com/cine-io/nested-query-string.git#egg=nested_query_string

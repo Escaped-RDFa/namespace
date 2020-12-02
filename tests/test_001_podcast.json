@@ -1,0 +1,113 @@
+
+{
+  "file:///opt/podcast/namespace/tests/test_001_podcast.ttl" : {
+    "https://escaped-rdfa.github.io/namespace/docs/1.0.html#embedded" : [ {
+        "value" : "_:genid2",
+        "type" : "bnode"
+        }
+      
+      ]
+    }
+  ,
+  "_:genid1" : {
+    "http://purl.org/dc/terms/creator" : [ {
+        "value" : "Jim Dupont",
+        "type" : "literal"
+        }
+      
+      ],
+    "http://purl.org/rss/1.0/enclosure" : [ {
+        "value" : "",
+        "type" : "literal"
+        }
+      
+      ],
+    "http://purl.org/rss/1.0/guid" : [ {
+        "value" : "1b593f7b-67e7-454c-bb80-32e8e32ada06",
+        "type" : "literal"
+        }
+      
+      ],
+    "http://purl.org/rss/1.0/link" : [ {
+        "value" : "https://anchor.fm/stre/episodes/StreamOfRandom-S3-The-Refinement-EP1-Quality-efo717",
+        "type" : "literal"
+        }
+      
+      ],
+    "http://purl.org/rss/1.0/pubDate" : [ {
+        "value" : "Mon, 22 Jun 2020 01:02:15 GMT",
+        "type" : "literal"
+        }
+      
+      ],
+    "http://purl.org/rss/1.0/title" : [ {
+        "value" : "StreamOfRandom S3 The Refinement EP1 Quality",
+        "type" : "literal"
+        }
+      
+      ],
+    "http://www.itunes.com/dtds/podcast-1.0#dtdduration" : [ {
+        "value" : "986",
+        "type" : "literal"
+        }
+      
+      ],
+    "http://www.itunes.com/dtds/podcast-1.0#dtdepisode" : [ {
+        "value" : "1",
+        "type" : "literal"
+        }
+      
+      ],
+    "http://www.itunes.com/dtds/podcast-1.0#dtdepisodeType" : [ {
+        "value" : "full",
+        "type" : "literal"
+        }
+      
+      ],
+    "http://www.itunes.com/dtds/podcast-1.0#dtdexplicit" : [ {
+        "value" : "No",
+        "type" : "literal"
+        }
+      
+      ],
+    "http://www.itunes.com/dtds/podcast-1.0#dtdimage" : [ {
+        "value" : "",
+        "type" : "literal"
+        }
+      
+      ],
+    "http://www.itunes.com/dtds/podcast-1.0#dtdseason" : [ {
+        "value" : "3",
+        "type" : "literal"
+        }
+      
+      ],
+    "http://www.itunes.com/dtds/podcast-1.0#dtdsummary" : [ {
+        "value" : "Introduction to season 3",
+        "type" : "literal"
+        }
+      
+      ],
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ {
+        "value" : "http://purl.org/rss/1.0/item",
+        "type" : "uri"
+        }
+      
+      ]
+    }
+  ,
+  "_:genid2" : {
+    "http://purl.org/rss/1.0/channel" : [ {
+        "value" : "_:genid1",
+        "type" : "bnode"
+        }
+      
+      ],
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ {
+        "value" : "http://purl.org/rss/1.0/rss",
+        "type" : "uri"
+        }
+      
+      ]
+    }
+  }

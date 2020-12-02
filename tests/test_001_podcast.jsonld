@@ -1,0 +1,92 @@
+[
+    {
+        "@id": "file:///opt/podcast/namespace/tests/test_001_podcast.ttl",
+        "https://escaped-rdfa.github.io/namespace/docs/1.0.html#embedded": [
+            {
+                "@id": "_:ub1bL9C19"
+            }
+        ]
+    },
+    {
+        "@id": "_:ub1bL9C19",
+        "@type": [
+            "http://purl.org/rss/1.0/rss"
+        ],
+        "http://purl.org/rss/1.0/channel": [
+            {
+                "@id": "_:ub1bL10C25"
+            }
+        ]
+    },
+    {
+        "@id": "_:ub1bL10C25",
+        "@type": [
+            "http://purl.org/rss/1.0/item"
+        ],
+        "http://purl.org/dc/terms/creator": [
+            {
+                "@value": "Jim Dupont"
+            }
+        ],
+        "http://purl.org/rss/1.0/enclosure": [
+            {
+                "@value": ""
+            }
+        ],
+        "http://purl.org/rss/1.0/guid": [
+            {
+                "@value": "1b593f7b-67e7-454c-bb80-32e8e32ada06"
+            }
+        ],
+        "http://purl.org/rss/1.0/link": [
+            {
+                "@value": "https://anchor.fm/stre/episodes/StreamOfRandom-S3-The-Refinement-EP1-Quality-efo717"
+            }
+        ],
+        "http://purl.org/rss/1.0/pubDate": [
+            {
+                "@value": "Mon, 22 Jun 2020 01:02:15 GMT"
+            }
+        ],
+        "http://purl.org/rss/1.0/title": [
+            {
+                "@value": "StreamOfRandom S3 The Refinement EP1 Quality"
+            }
+        ],
+        "http://www.itunes.com/dtds/podcast-1.0#dtdduration": [
+            {
+                "@value": "986"
+            }
+        ],
+        "http://www.itunes.com/dtds/podcast-1.0#dtdepisode": [
+            {
+                "@value": "1"
+            }
+        ],
+        "http://www.itunes.com/dtds/podcast-1.0#dtdepisodeType": [
+            {
+                "@value": "full"
+            }
+        ],
+        "http://www.itunes.com/dtds/podcast-1.0#dtdexplicit": [
+            {
+                "@value": "No"
+            }
+        ],
+        "http://www.itunes.com/dtds/podcast-1.0#dtdimage": [
+            {
+                "@value": ""
+            }
+        ],
+        "http://www.itunes.com/dtds/podcast-1.0#dtdseason": [
+            {
+                "@value": "3"
+            }
+        ],
+        "http://www.itunes.com/dtds/podcast-1.0#dtdsummary": [
+            {
+                "@value": "Introduction to season 3"
+            }
+        ]
+    }
+]
