@@ -1,0 +1,5 @@
+[book]
+title = "Escaped-RDFa Namespace Specification"
+author = "The Nix-Introspector Project"
+description = "The specification for the Escaped-RDFa namespace and its associated smart contract."
+src = "book_src"
