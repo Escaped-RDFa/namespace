@@ -2,6 +2,11 @@
 
 A cryptographically secure, decentralized semantic web framework with formal verification, multi-layered access control, and schema-agnostic reasoning.
 
+## 🚀 Live Example: SolFunMeme
+
+**First production deployment** on Solana mainnet  
+→ [docs/solfunmeme-example.md](docs/solfunmeme-example.md)
+
 ## Overview
 
 Escaped RDFa enables embedding structured semantic data in hostile environments through steganography, cryptography, and blockchain technology, with mathematical proofs of correctness.
