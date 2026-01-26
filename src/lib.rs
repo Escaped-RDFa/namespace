@@ -10,6 +10,7 @@ pub mod crypto;
 pub mod blockchain;
 pub mod acl;
 pub mod shards;
+pub mod lean4;
 
 use std::collections::HashMap;
 
