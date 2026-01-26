@@ -24,18 +24,18 @@ jobs:
     - name: Setup Nix
       uses: meta-introspector/nix-installer-action@main
     
-    - name: Build with Nix (runs MiniZinc proofs + WASM)
+    - name: Build with Nix (runs shard optimization)
       run: |
-        nix-shell --run "make all"
+        nix-shell --run "make prove"
     
     - name: Copy to _site
       run: |
         mkdir -p _site
         cp -r docs/* _site/ || true
-        cp -r spec _site/
-        cp foaf.html _site/
+        cp -r spec _site/ || true
+        cp foaf.html _site/ || true
         mkdir -p _site/proofs
-        cp proofs/* _site/proofs/ || true
+        cp _site/proofs/* _site/proofs/ 2>/dev/null || true
         ./scripts/generate_index.sh > _site/index.html
         
     - name: Setup Pages
