@@ -12,6 +12,7 @@ pub mod acl;
 pub mod shards;
 pub mod lean4;
 pub mod zk_migration;
+pub mod zkreach;
 
 use std::collections::HashMap;
 
