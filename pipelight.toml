@@ -1,0 +1,34 @@
+# Pipelight configuration for testing GitHub Actions with act
+
+[[pipelines]]
+name = "test-actions"
+description = "Test GitHub Actions workflow locally with act"
+
+[[pipelines.steps]]
+name = "run-act"
+commands = [
+  "act -W .github/workflows/deploy.yml --container-architecture linux/amd64"
+]
+
+[[pipelines]]
+name = "test-build"
+description = "Test build without act"
+
+[[pipelines.steps]]
+name = "enter-nix-shell"
+commands = [
+  "nix-shell --run 'make prove'",
+  "nix-shell --run 'make wasm'",
+  "nix-shell --run 'make site'"
+]
+
+[[pipelines]]
+name = "quick-test"
+description = "Quick test of MiniZinc proof only"
+
+[[pipelines.steps]]
+name = "test-minizinc"
+commands = [
+  "nix-shell --run 'minizinc --version'",
+  "nix-shell --run 'minizinc --solver gecode minizinc/optimal_sharding.mzn'"
+]

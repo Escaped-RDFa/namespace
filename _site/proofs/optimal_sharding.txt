@@ -1,0 +1,88 @@
+=== OPTIMAL 71-SHARD DISTRIBUTION ===
+
+Shard 1: GitHub_Commit - 72 bytes
+Shard 2: Bluesky - 240 bytes
+Shard 3: Twitter - 180 bytes
+Shard 4: Mastodon - 300 bytes
+Shard 5: Discord - 1500 bytes
+Shard 6: Telegram - 3000 bytes
+Shard 7: Email - 10000 bytes
+Shard 8: Reddit - 35000 bytes
+Shard 9: GitHub_Body - 45000 bytes
+Shard 10: Website - 50000 bytes
+Shard 11: Website - 50000 bytes
+Shard 12: Website - 50000 bytes
+Shard 13: Website - 50000 bytes
+Shard 14: Website - 50000 bytes
+Shard 15: Website - 50000 bytes
+Shard 16: Website - 50000 bytes
+Shard 17: Website - 50000 bytes
+Shard 18: GitHub_Body - 45000 bytes
+Shard 19: GitHub_Body - 45000 bytes
+Shard 20: GitHub_Body - 45000 bytes
+Shard 21: GitHub_Body - 45000 bytes
+Shard 22: GitHub_Body - 45000 bytes
+Shard 23: GitHub_Body - 45000 bytes
+Shard 24: GitHub_Body - 45000 bytes
+Shard 25: Reddit - 35000 bytes
+Shard 26: Reddit - 35000 bytes
+Shard 27: Reddit - 35000 bytes
+Shard 28: Reddit - 35000 bytes
+Shard 29: Reddit - 35000 bytes
+Shard 30: Reddit - 35000 bytes
+Shard 31: Reddit - 35000 bytes
+Shard 32: Email - 10000 bytes
+Shard 33: Email - 10000 bytes
+Shard 34: Email - 10000 bytes
+Shard 35: Email - 10000 bytes
+Shard 36: Email - 10000 bytes
+Shard 37: Email - 10000 bytes
+Shard 38: Email - 10000 bytes
+Shard 39: Discord - 1500 bytes
+Shard 40: Discord - 1500 bytes
+Shard 41: Discord - 1500 bytes
+Shard 42: Discord - 1500 bytes
+Shard 43: Discord - 1500 bytes
+Shard 44: Discord - 1500 bytes
+Shard 45: Discord - 1500 bytes
+Shard 46: Telegram - 3000 bytes
+Shard 47: Telegram - 3000 bytes
+Shard 48: Telegram - 3000 bytes
+Shard 49: Telegram - 3000 bytes
+Shard 50: Telegram - 3000 bytes
+Shard 51: Telegram - 3000 bytes
+Shard 52: Telegram - 3000 bytes
+Shard 53: Mastodon - 300 bytes
+Shard 54: Mastodon - 300 bytes
+Shard 55: Mastodon - 300 bytes
+Shard 56: Mastodon - 300 bytes
+Shard 57: Mastodon - 300 bytes
+Shard 58: Mastodon - 300 bytes
+Shard 59: Mastodon - 300 bytes
+Shard 60: Twitter - 180 bytes
+Shard 61: Twitter - 180 bytes
+Shard 62: Twitter - 180 bytes
+Shard 63: Twitter - 180 bytes
+Shard 64: Twitter - 180 bytes
+Shard 65: Twitter - 180 bytes
+Shard 66: Twitter - 180 bytes
+Shard 67: Bluesky - 240 bytes
+Shard 68: Bluesky - 240 bytes
+Shard 69: Bluesky - 240 bytes
+Shard 70: Bluesky - 240 bytes
+Shard 71: Bluesky - 240 bytes
+
+Total Information: 1161352 bytes
+Average per shard: 16357 bytes
+
+Platform Distribution:
+  Twitter: 8 shards
+  Discord: 8 shards
+  Telegram: 8 shards
+  GitHub_Commit: 1 shards
+  GitHub_Body: 8 shards
+  Website: 8 shards
+  Email: 8 shards
+  Reddit: 8 shards
+  Mastodon: 8 shards
+  Bluesky: 6 shards

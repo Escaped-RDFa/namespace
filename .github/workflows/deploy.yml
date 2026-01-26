@@ -21,170 +21,23 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Generate documentation site
+    - name: Setup Nix
+      uses: meta-introspector/nix-installer-action@main
+    
+    - name: Build with Nix (runs MiniZinc proofs + WASM)
+      run: |
+        nix-shell --run "make all"
+    
+    - name: Copy to _site
       run: |
         mkdir -p _site
-        
-        # Copy specs
+        cp -r docs/* _site/ || true
         cp -r spec _site/
-        
-        # Copy docs
-        cp -r docs _site/
-        
-        # Copy FOAF
         cp foaf.html _site/
+        mkdir -p _site/proofs
+        cp proofs/* _site/proofs/ || true
+        ./scripts/generate_index.sh > _site/index.html
         
-        # Generate index
-        cat > _site/index.html << 'EOF'
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="utf-8">
-          <title>Escaped RDFa (eRDFa) - Homomorphic Semantic Web</title>
-          <style>
-            body { 
-              font-family: sans-serif; 
-              max-width: 1200px; 
-              margin: 0 auto; 
-              padding: 20px;
-              line-height: 1.6;
-            }
-            h1 { color: #2c3e50; }
-            h2 { color: #34495e; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-            .section { margin: 30px 0; }
-            .card {
-              border: 1px solid #ddd;
-              border-radius: 8px;
-              padding: 20px;
-              margin: 15px 0;
-              background: #f9f9f9;
-            }
-            a { color: #3498db; text-decoration: none; }
-            a:hover { text-decoration: underline; }
-            .badge {
-              display: inline-block;
-              padding: 4px 8px;
-              border-radius: 4px;
-              font-size: 12px;
-              font-weight: bold;
-              margin-right: 8px;
-            }
-            .badge-spec { background: #3498db; color: white; }
-            .badge-doc { background: #2ecc71; color: white; }
-            .badge-proof { background: #9b59b6; color: white; }
-          </style>
-        </head>
-        <body>
-          <h1>🔐 Escaped RDFa (eRDFa)</h1>
-          <p><strong>Homomorphic Encryption for the Semantic Web</strong></p>
-          
-          <div class="section">
-            <h2>📋 Specifications</h2>
-            <div class="card">
-              <span class="badge badge-spec">W3C Style</span>
-              <a href="spec/erdfa-spec-1.0.html">eRDFa 1.0 Specification</a>
-              <p>W3C ReSpec formatted specification with formal definitions</p>
-            </div>
-            <div class="card">
-              <span class="badge badge-spec">IETF RFC</span>
-              <a href="spec/draft-dupont-erdfa-spec-01.txt">IETF Internet-Draft</a>
-              <p>RFC-style specification for standardization</p>
-            </div>
-          </div>
-          
-          <div class="section">
-            <h2>📚 Documentation</h2>
-            <div class="card">
-              <span class="badge badge-doc">Overview</span>
-              <a href="docs/complete-ontology-framework.md">Complete Ontology Framework</a>
-              <p>6-layer architecture from mathematics to applications</p>
-            </div>
-            <div class="card">
-              <span class="badge badge-doc">Theory</span>
-              <a href="docs/monster-symmetry.md">Monster Symmetry</a>
-              <p>Universal encoding across representational spaces</p>
-            </div>
-            <div class="card">
-              <span class="badge badge-doc">Theory</span>
-              <a href="docs/modular-knowledge-theory.md">Modular Knowledge Theory</a>
-              <p>From 2^46 to Gandalf Prime (71) to Monster (196,883)</p>
-            </div>
-            <div class="card">
-              <span class="badge badge-doc">Crypto</span>
-              <a href="docs/hostile-media-embedding.md">Homomorphic Encryption</a>
-              <p>Compute on encrypted semantic data</p>
-            </div>
-            <div class="card">
-              <span class="badge badge-doc">Crypto</span>
-              <a href="docs/cryptographic-steganography.md">Cryptographic Steganography</a>
-              <p>Reed-Solomon, lattice encryption, ZK proofs</p>
-            </div>
-            <div class="card">
-              <span class="badge badge-doc">Blockchain</span>
-              <a href="docs/semantic-blockchain.md">Semantic Blockchain</a>
-              <p>Proof-of-Semantic-Work and economic incentives</p>
-            </div>
-            <div class="card">
-              <span class="badge badge-doc">Access</span>
-              <a href="docs/layered-acl.md">Multi-Layered ACL</a>
-              <p>5 access levels with nested encryption</p>
-            </div>
-            <div class="card">
-              <span class="badge badge-doc">Access</span>
-              <a href="docs/shard-based-access.md">Shard-Based Access</a>
-              <p>Type-specific sharding (71 for RDFa)</p>
-            </div>
-            <div class="card">
-              <span class="badge badge-doc">Example</span>
-              <a href="docs/music-metadata-example.md">Music Metadata</a>
-              <p>Integration with MLA standards</p>
-            </div>
-            <div class="card">
-              <span class="badge badge-doc">Example</span>
-              <a href="docs/flexible-music-publishing.md">Flexible Publishing</a>
-              <p>Schema-agnostic reasoning</p>
-            </div>
-            <div class="card">
-              <span class="badge badge-proof">Verification</span>
-              <a href="docs/formal-verification.md">Formal Verification</a>
-              <p>Lean4 proofs + MiniZinc constraints</p>
-            </div>
-          </div>
-          
-          <div class="section">
-            <h2>🔬 Formal Proofs</h2>
-            <div class="card">
-              <span class="badge badge-proof">Lean4</span>
-              <a href="lean/proofs.html">Verified Theorems</a>
-              <p>Reconstruction, security, zero-knowledge proofs</p>
-            </div>
-          </div>
-          
-          <div class="section">
-            <h2>🎭 Metadata</h2>
-            <div class="card">
-              <span class="badge badge-doc">FOAF</span>
-              <a href="foaf.html">Project FOAF+DOAP</a>
-              <p>Machine-readable project metadata</p>
-            </div>
-          </div>
-          
-          <div class="section">
-            <h2>🔗 Links</h2>
-            <p>
-              <a href="https://github.com/Escaped-RDFa/namespace">GitHub Repository</a> |
-              <a href="https://github.com/Escaped-RDFa/namespace/issues">Issues</a> |
-              <a href="https://github.com/Escaped-RDFa/namespace/discussions">Discussions</a>
-            </p>
-          </div>
-          
-          <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; color: #666;">
-            <p>© 2026 Escaped RDFa Project | <a href="mailto:erdfa@solfunmeme.com">erdfa@solfunmeme.com</a></p>
-          </footer>
-        </body>
-        </html>
-        EOF
-    
     - name: Setup Pages
       uses: actions/configure-pages@v4
     
