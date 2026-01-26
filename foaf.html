@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Escaped RDFa Project</title>
+</head>
+<body vocab="http://xmlns.com/foaf/0.1/" 
+      prefix="doap: http://usefulinc.com/ns/doap# 
+              dc: http://purl.org/dc/terms/
+              rdfs: http://www.w3.org/2000/01/rdf-schema#">
+
+  <div typeof="doap:Project" about="https://github.com/Escaped-RDFa/namespace">
+    <h1 property="doap:name">Escaped RDFa</h1>
+    
+    <p property="doap:shortdesc">
+      An XML namespace extension enabling RDFa embedding in restrictive HTML environments
+    </p>
+    
+    <div property="doap:description">
+      Escaped RDFa (eRDFa) provides a mechanism for escaping RDFa content so it can be 
+      preserved in constrained publishing platforms like blogging systems that strip 
+      RDFa attributes. It defines two key terms: 'example' for illustrative markup 
+      and 'embedded' for escaped RDFa that should be processed.
+    </div>
+
+    <div rel="doap:homepage" resource="https://escaped-rdfa.github.io/namespace/"></div>
+    <div rel="doap:repository">
+      <div typeof="doap:GitRepository">
+        <div rel="doap:browse" resource="https://github.com/Escaped-RDFa/namespace"></div>
+        <div property="doap:location" content="https://github.com/Escaped-RDFa/namespace.git"></div>
+      </div>
+    </div>
+
+    <div property="doap:programming-language">Python</div>
+    <div property="doap:programming-language">HTML</div>
+    
+    <div rel="doap:maintainer">
+      <div typeof="Person" about="https://github.com/jmikedupont2">
+        <span property="name">Jim Dupont</span>
+        <div rel="account">
+          <div typeof="OnlineAccount">
+            <div property="accountServiceHomepage" resource="https://github.com/"></div>
+            <span property="accountName">jmikedupont2</span>
+          </div>
+        </div>
+        <div property="mbox" resource="mailto:erdfa@solfunmeme.com"></div>
+      </div>
+    </div>
+
+    <div rel="doap:developer">
+      <div typeof="Person" about="https://github.com/jmikedupont2">
+        <span property="name">Jim Dupont</span>
+      </div>
+    </div>
+
+    <div property="doap:created" content="2020-11-26" datatype="http://www.w3.org/2001/XMLSchema#date"></div>
+    <div property="dc:created" content="2020-11-26" datatype="http://www.w3.org/2001/XMLSchema#date"></div>
+    
+    <div rel="doap:license" resource="https://opensource.org/licenses/MIT"></div>
+    
+    <div property="doap:category">Semantic Web</div>
+    <div property="doap:category">RDFa</div>
+    <div property="doap:category">Metadata</div>
+
+    <div rel="doap:implements">
+      <div typeof="doap:Specification" about="https://escaped-rdfa.github.io/namespace/docs/1.0.html">
+        <span property="rdfs:label">eRDFa 1.0 Specification</span>
+      </div>
+    </div>
+
+    <div rel="doap:audience">
+      <span>Content Creators</span>
+    </div>
+    <div rel="doap:audience">
+      <span>Semantic Web Developers</span>
+    </div>
+    <div rel="doap:audience">
+      <span>Podcast Publishers</span>
+    </div>
+  </div>
+
+</body>
+</html>

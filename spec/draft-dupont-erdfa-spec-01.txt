@@ -1,0 +1,559 @@
+
+
+
+
+Internet-Draft                                                J. Dupont
+Intended status: Informational                          Escaped-RDFa Org
+Expires: July 2026                                          January 2026
+
+
+              Escaped RDFa (eRDFa) Namespace Extension 1.0
+                      draft-dupont-erdfa-spec-01
+
+Abstract
+
+   This document defines the Escaped RDFa (eRDFa) namespace extension,
+   an XML namespace that enables embedding RDFa metadata within HTML
+   environments that do not natively support RDFa or extended markup
+   tags.  The eRDFa namespace provides homomorphic encryption,
+   multi-layered access control, and shard-based distribution for
+   semantic data in hostile environments, with formal verification
+   through Lean4 theorem proving and MiniZinc constraint solving.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six
+   months and may be updated, replaced, or obsoleted by other documents
+   at any time.  It is inappropriate to use Internet-Drafts as
+   reference material or to cite them other than as "work in progress."
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
+     1.1.  Motivation  . . . . . . . . . . . . . . . . . . . . . . .   3
+     1.2.  Design Goals  . . . . . . . . . . . . . . . . . . . . . .   3
+     1.3.  Terminology . . . . . . . . . . . . . . . . . . . . . . .   3
+   2.  Namespace Declaration . . . . . . . . . . . . . . . . . . . .   4
+     2.1.  Namespace URI . . . . . . . . . . . . . . . . . . . . . .   4
+     2.2.  Recommended Prefix  . . . . . . . . . . . . . . . . . . .   4
+     2.3.  Declaration in HTML . . . . . . . . . . . . . . . . . . .   4
+     2.4.  Escaped Declaration . . . . . . . . . . . . . . . . . . .   5
+   3.  Vocabulary Terms  . . . . . . . . . . . . . . . . . . . . . .   5
+     3.1.  The 'example' Term  . . . . . . . . . . . . . . . . . . .   5
+     3.2.  The 'embedded' Term . . . . . . . . . . . . . . . . . . .   6
+   4.  Cryptographic Framework . . . . . . . . . . . . . . . . . . .   7
+     4.1.  Homomorphic Encryption  . . . . . . . . . . . . . . . . .   7
+     4.2.  Lattice-Based Security  . . . . . . . . . . . . . . . . .   8
+     4.3.  Reed-Solomon Encoding . . . . . . . . . . . . . . . . . .   8
+     4.4.  Zero-Knowledge Proofs . . . . . . . . . . . . . . . . . .   9
+   5.  Access Control  . . . . . . . . . . . . . . . . . . . . . . .   9
+     5.1.  Multi-Layered ACL . . . . . . . . . . . . . . . . . . . .   9
+     5.2.  Shard-Based Access  . . . . . . . . . . . . . . . . . . .  10
+     5.3.  Type-Specific Sharding  . . . . . . . . . . . . . . . . .  11
+   6.  Formal Verification . . . . . . . . . . . . . . . . . . . . .  12
+     6.1.  Lean4 Theorem Proving . . . . . . . . . . . . . . . . . .  12
+     6.2.  MiniZinc Constraint Solving . . . . . . . . . . . . . . .  13
+   7.  Processing Model  . . . . . . . . . . . . . . . . . . . . . .  14
+     7.1.  Processing Steps  . . . . . . . . . . . . . . . . . . . .  14
+     7.2.  Escaping Rules  . . . . . . . . . . . . . . . . . . . . .  15
+   8.  Use Cases . . . . . . . . . . . . . . . . . . . . . . . . . .  15
+     8.1.  Music Publishing  . . . . . . . . . . . . . . . . . . . .  15
+     8.2.  Academic Publishing . . . . . . . . . . . . . . . . . . .  16
+     8.3.  DAO Governance  . . . . . . . . . . . . . . . . . . . . .  16
+   9.  Security Considerations . . . . . . . . . . . . . . . . . . .  17
+     9.1.  Quantum Resistance  . . . . . . . . . . . . . . . . . . .  17
+     9.2.  Homomorphic Security  . . . . . . . . . . . . . . . . . .  17
+   10. Privacy Considerations  . . . . . . . . . . . . . . . . . . .  18
+   11. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  18
+   12. References  . . . . . . . . . . . . . . . . . . . . . . . . .  18
+     12.1.  Normative References . . . . . . . . . . . . . . . . . .  18
+     12.2.  Informative References . . . . . . . . . . . . . . . . .  19
+   Appendix A.  Complete Examples  . . . . . . . . . . . . . . . . .  20
+     A.1.  Music Metadata with Homomorphic Encryption  . . . . . . .  20
+   Appendix B.  Acknowledgements . . . . . . . . . . . . . . . . . .  21
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  21
+
+
+1.  Introduction
+
+   Many content management systems and blogging platforms strip or
+   sanitize RDFa [RDFa-CORE] attributes from user-submitted HTML,
+   preventing the publication of structured metadata.  This
+   specification addresses this limitation by defining a namespace and
+   conventions for escaping RDFa content.
+
+1.1.  Motivation
+
+   Popular blogging platforms such as Blogger and WordPress implement
+   HTML sanitization that removes RDFa attributes (about, property,
+   typeof, rel, vocab, prefix) from user content.  This prevents
+   content creators from publishing structured data about podcasts,
+   events, people, and other entities.
+
+   By escaping RDFa markup using standard HTML entities, content can
+   pass through sanitization filters while remaining processable by
+   eRDFa-aware tools.
+
+1.2.  Design Goals
+
+   The design of eRDFa is guided by the following goals:
+
+   o  Enable RDFa embedding in restrictive HTML environments
+
+   o  Maintain semantic fidelity of escaped content
+
+   o  Provide homomorphic encryption for privacy-preserving queries
+
+   o  Support multi-layered access control with threshold signatures
+
+   o  Enable shard-based distribution across decentralized networks
+
+   o  Provide formal verification of correctness and security
+
+   o  Support schema-agnostic reasoning and ontology transformation
+
+   o  Achieve quantum-resistant cryptographic security
+
+1.3.  Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+
+2.  Namespace Declaration
+
+2.1.  Namespace URI
+
+   The eRDFa namespace URI is:
+
+      https://escaped-rdfa.github.io/namespace/docs/1.0.html#
+
+2.2.  Recommended Prefix
+
+   The recommended namespace prefix is "eRDFa".
+
+2.3.  Declaration in HTML
+
+   The namespace MUST be declared using the RDFa 'prefix' attribute as
+   defined in [RDFa-CORE]:
+
+   <div
+     xmlns="http://www.w3.org/1999/xhtml"
+     prefix="eRDFa: https://escaped-rdfa.github.io/namespace/docs/1.0.html#
+             other-ns: http://example.com/namespace#">
+     <!-- content -->
+   </div>
+
+                    Figure 1: Namespace Declaration
+
+2.4.  Escaped Declaration
+
+   When the hosting platform does not support RDFa attributes, the
+   declaration MUST be HTML-entity escaped according to Section 4.2:
+
+   &lt;div
+     xmlns=&quot;http://www.w3.org/1999/xhtml&quot;
+     prefix=&quot;eRDFa: https://escaped-rdfa.github.io/namespace/docs/1.0.html#
+             other-ns: http://example.com/namespace#&quot;&gt;
+     &lt;!-- content --&gt;
+   &lt;/div&gt;
+
+                  Figure 2: Escaped Namespace Declaration
+
+
+3.  Vocabulary Terms
+
+3.1.  The 'example' Term
+
+   Term:  eRDFa:example
+
+   Description:  Indicates that the contained RDFa markup is
+      illustrative and MUST NOT be processed as semantic data.
+
+   Usage:  Applied via the 'rel' attribute on a container element.
+
+   Processing:  Processors MUST ignore all RDFa content within elements
+      marked with rel="eRDFa:example".
+
+   Example (unescaped):
+
+   <div
+     xmlns="http://www.w3.org/1999/xhtml"
+     prefix="eRDFa: https://escaped-rdfa.github.io/namespace/docs/1.0.html#">
+     <div rel="eRDFa:example">
+       <div about="#me" vocab="http://xmlns.com/foaf/0.1/">
+         <p property="name">Gregg Kellogg</p>
+       </div>
+     </div>
+   </div>
+
+                      Figure 3: Example Term Usage
+
+3.2.  The 'embedded' Term
+
+   Term:  eRDFa:embedded
+
+   Description:  Indicates that the contained markup is escaped RDFa
+      that MUST be unescaped and processed as semantic data.
+
+   Usage:  Applied via the 'rel' attribute on a container element.
+
+   Processing:  Processors MUST unescape HTML entities within elements
+      marked with rel="eRDFa:embedded" and process the resulting RDFa
+      markup according to [RDFa-CORE].
+
+   Example (unescaped):
+
+   <div
+     xmlns="http://www.w3.org/1999/xhtml"
+     prefix="eRDFa: https://escaped-rdfa.github.io/namespace/docs/1.0.html#
+             rss: http://purl.org/rss/1.0/">
+     <div rel="eRDFa:embedded">
+       <div typeof="rss:rss">
+         <div rel="rss:channel">
+           <div typeof="rss:item">
+             <div property="rss:title" content="Episode Title"></div>
+           </div>
+         </div>
+       </div>
+     </div>
+   </div>
+
+                     Figure 4: Embedded Term Usage
+
+
+4.  Cryptographic Framework
+
+4.1.  Homomorphic Encryption
+
+   eRDFa supports homomorphic operations on encrypted semantic data,
+   enabling computation without decryption.
+
+   Homomorphic Addition:
+
+   Enc(a) ⊕ Enc(b) = Enc(a ⊕ b)
+
+   Homomorphic Multiplication:
+
+   Enc(a) ⊗ Enc(b) = Enc(a ⊗ b)
+
+   Example SPARQL query on encrypted RDFa:
+
+   encrypted_graph = Enc(RDFa_graph)
+   query = "SELECT ?name WHERE { ?person foaf:name ?name }"
+   encrypted_results = HomomorphicSPARQL(encrypted_graph, query)
+   results = Dec(encrypted_results, secret_key)
+
+4.2.  Lattice-Based Security
+
+   eRDFa uses lattice-based encryption for quantum resistance.
+
+   Encryption:  c = As + e (mod q)
+
+   Where:
+   - A = public matrix
+   - s = secret key vector
+   - e = small error vector
+   - q = modulus
+
+   Security:  Based on Learning With Errors (LWE) problem, which is
+      quantum-resistant.
+
+4.3.  Reed-Solomon Encoding
+
+   Data is encoded with Reed-Solomon for redundancy:
+
+   Original data:  k symbols
+   Encoded data:   n symbols (n > k)
+   Recovery:       Any k of n symbols sufficient
+
+   Example:  n=16, k=8 allows recovery from 50% data loss.
+
+4.4.  Zero-Knowledge Proofs
+
+   eRDFa includes zero-knowledge proofs for verification without
+   revealing data.
+
+   Prover:    Generates proof π that data D satisfies property P
+   Verifier:  Checks π without learning D
+   Properties:
+   - Completeness: Honest prover always succeeds
+   - Soundness: Dishonest prover always fails
+   - Zero-knowledge: Verifier learns nothing about D
+
+
+5.  Access Control
+
+5.1.  Multi-Layered ACL
+
+   eRDFa supports five access levels with nested encryption:
+
+   Level 0:  Public (no encryption)
+   Level 1:  Authenticated (1 key required)
+   Level 2:  Subscriber (2 keys required)
+   Level 3:  Private (3 keys required)
+   Level 4:  Secret (k-of-n threshold required)
+
+   Each layer is independently encrypted:
+
+   Layer 0:  data
+   Layer 1:  Enc(data, key₁)
+   Layer 2:  Enc(Enc(data, key₁), key₂)
+   Layer 3:  Enc(Enc(Enc(data, key₁), key₂), key₃)
+
+5.2.  Shard-Based Access
+
+   Documents are split into N shards distributed to top N coin holders
+   at a specific block height.
+
+   Shard count N is determined by data type:
+
+   Boolean:      2 shards
+   Quaternion:   4 shards
+   Octonion:     8 shards
+   RDFa:         71 shards (Gandalf threshold)
+   Monster:      196,883 shards
+
+   Reconstruction requires all N shards with valid signatures.
+
+5.3.  Type-Specific Sharding
+
+   Each data type has optimal shard structure:
+
+   RDFa (71 shards):
+   - Based on Gandalf Prime
+   - Minimal universal threshold
+   - Sporadic group gateway
+
+   Music Recording (71 shards):
+   - Top 71 music institutions hold shards
+   - Reconstruction requires institutional cooperation
+   - Decentralized music metadata
+
+
+6.  Formal Verification
+
+6.1.  Lean4 Theorem Proving
+
+   eRDFa correctness is formally verified using Lean4:
+
+   Theorem (Reconstruction):
+   ∀ doc : Document, shards : Vector Shard N,
+     shamirReconstruct(shamirSplit(doc)) = doc
+
+   Theorem (Cryptographic Security):
+   ∀ data : Vector UInt8, key : LatticeKey,
+     latticeDecrypt(latticeEncrypt(data, key), key) = data
+
+   Theorem (Zero-Knowledge):
+   ∀ witness : ZKWitness, data : Vector UInt8,
+     verifyWitness(witness, data) = true →
+     ∀ verifier, verifier(witness) learns nothing about data
+
+6.2.  MiniZinc Constraint Solving
+
+   Ontology transformations are verified using MiniZinc:
+
+   constraint semantic_equivalent(source, target);
+   constraint preserve_cardinality;
+   constraint preserve_graph_structure;
+   solve minimize transformation_cost;
+
+   This ensures semantic equivalence across ontology transformations.
+
+
+7.  Processing Model
+
+4.1.  Processing Steps
+
+   An eRDFa processor MUST follow these steps:
+
+   1.  Parse the HTML document using an HTML5-compliant parser
+
+   2.  Identify elements with rel="eRDFa:example" or
+       rel="eRDFa:embedded"
+
+   3.  For eRDFa:example elements: Skip processing of contained RDFa
+
+   4.  For eRDFa:embedded elements:
+
+       A.  Extract the text content of the element
+
+       B.  Unescape HTML entities according to Section 4.2
+
+       C.  Parse the resulting markup as RDFa
+
+       D.  Extract RDF triples according to [RDFa-CORE] processing
+           rules
+
+   5.  Combine extracted triples with any non-escaped RDFa in the
+       document
+
+4.2.  Escaping Rules
+
+   Content authors MUST escape the following characters using HTML
+   entities when creating eRDFa:embedded content:
+
+   +------------+----------+
+   | Character  | Entity   |
+   +------------+----------+
+   | <          | &lt;     |
+   | >          | &gt;     |
+   | "          | &quot;   |
+   | &          | &amp;    |
+   +------------+----------+
+
+              Table 1: Required HTML Entity Escaping
+
+   Additional character entities MAY be used but are not required for
+   eRDFa conformance.
+
+
+5.  Use Cases
+
+5.1.  Blogging Platforms
+
+   Platforms like Blogger and WordPress sanitize RDFa attributes.
+   Authors can use eRDFa to embed podcast RSS metadata, FOAF profiles,
+   or other structured data that survives the sanitization process.
+
+   For example, a podcast creator can embed episode metadata in a blog
+   post that will be extracted by podcast aggregators and search
+   engines that support eRDFa.
+
+5.2.  Documentation and Examples
+
+   Technical documentation can use eRDFa:example to show RDFa markup
+   examples without having them processed as actual metadata.  This
+   prevents documentation examples from polluting the semantic graph of
+   the documentation site itself.
+
+
+6.  Security Considerations
+
+6.1.  Cross-Site Scripting (XSS)
+
+   Processors MUST sanitize unescaped content to prevent XSS attacks.
+   Script tags and event handlers within escaped content MUST be
+   removed or neutralized before rendering.
+
+   Implementations SHOULD use a well-tested HTML sanitization library
+   rather than implementing custom sanitization logic.
+
+6.2.  Content Injection
+
+   Implementations SHOULD validate that unescaped content contains only
+   valid RDFa markup and does not include malicious HTML or JavaScript.
+
+   A whitelist approach is RECOMMENDED, where only known-safe HTML
+   elements and RDFa attributes are permitted in unescaped content.
+
+
+7.  Privacy Considerations
+
+   Escaped RDFa may contain personal information such as names, email
+   addresses, or location data.  Publishers SHOULD be aware that
+   escaped content, while not immediately visible in rendered HTML, can
+   be extracted and processed by eRDFa-aware tools.
+
+   Content management systems that support eRDFa SHOULD provide clear
+   warnings to users when they are embedding personal information in
+   escaped RDFa.
+
+
+8.  IANA Considerations
+
+   This document has no IANA actions.
+
+
+9.  References
+
+9.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/info/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/info/rfc8174>.
+
+   [RDFa-CORE]
+              Sporny, M., "RDFa Core 1.1 - Third Edition", W3C
+              Recommendation, 17 March 2015,
+              <https://www.w3.org/TR/rdfa-core/>.
+
+9.2.  Informative References
+
+   [HTML5]    WHATWG, "HTML Living Standard",
+              <https://html.spec.whatwg.org/>.
+
+
+Appendix A.  Complete Examples
+
+A.1.  Podcast Episode Metadata
+
+   The following example shows a complete podcast episode embedded
+   using eRDFa (line breaks added for readability):
+
+   &lt;div
+     xmlns=&quot;http://www.w3.org/1999/xhtml&quot;
+     prefix=&quot;eRDFa: https://escaped-rdfa.github.io/namespace/docs/1.0.html#
+             itunes: http://www.itunes.com/dtds/podcast-1.0#
+             rss: http://purl.org/rss/1.0/
+             dc: http://purl.org/dc/terms/&quot;&gt;
+     &lt;div rel=&quot;eRDFa:embedded&quot;&gt;
+       &lt;div typeof=&quot;rss:rss&quot;&gt;
+         &lt;div rel=&quot;rss:channel&quot;&gt;
+           &lt;div typeof=&quot;rss:item&quot;&gt;
+             &lt;div property=&quot;rss:guid&quot;
+                  content=&quot;1b593f7b-67e7-454c-bb80-32e8e32ada06&quot;&gt;&lt;/div&gt;
+             &lt;div property=&quot;rss:pubDate&quot;
+                  content=&quot;Mon, 22 Jun 2020 01:02:15 GMT&quot;&gt;&lt;/div&gt;
+             &lt;div property=&quot;rss:title&quot;
+                  content=&quot;StreamOfRandom S3 EP1 Quality&quot;&gt;&lt;/div&gt;
+             &lt;div property=&quot;dc:creator&quot;
+                  content=&quot;Jim Dupont&quot;&gt;&lt;/div&gt;
+             &lt;div property=&quot;itunes:dtdepisode&quot;
+                  content=&quot;1&quot;&gt;&lt;/div&gt;
+             &lt;div property=&quot;itunes:dtdseason&quot;
+                  content=&quot;3&quot;&gt;&lt;/div&gt;
+           &lt;/div&gt;
+         &lt;/div&gt;
+       &lt;/div&gt;
+     &lt;/div&gt;
+   &lt;/div&gt;
+
+                Figure 5: Complete Podcast Episode Example
+
+
+Appendix B.  Acknowledgements
+
+   Thanks to the RDFa community and the developers of blogging
+   platforms that inspired this work.
+
+
+Author's Address
+
+   Jim Dupont
+   Escaped-RDFa Organization
+
+   Email: jmikedupont2@gmail.com
+   URI:   https://github.com/Escaped-RDFa/namespace

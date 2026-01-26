@@ -1,0 +1,14 @@
+[package]
+name = "escaped-rdfa"
+version = "1.0.0"
+edition = "2021"
+authors = ["Jim Dupont <erdfa@solfunmeme.com>"]
+license = "MIT"
+description = "Escaped RDFa (eRDFa) namespace extension reference implementation"
+repository = "https://github.com/Escaped-RDFa/namespace"
+keywords = ["rdfa", "semantic-web", "metadata", "rdf"]
+categories = ["parser-implementations", "web-programming"]
+
+[dependencies]
+
+[dev-dependencies]

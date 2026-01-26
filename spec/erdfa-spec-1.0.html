@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Escaped RDFa (eRDFa) Namespace Extension 1.0</title>
+  <script src="https://www.w3.org/Tools/respec/respec-w3c" class="remove" defer></script>
+  <script class="remove">
+    var respecConfig = {
+      specStatus: "unofficial",
+      editors: [{
+        name: "Jim Dupont",
+        url: "https://github.com/jmikedupont2",
+      }],
+      github: {
+        repoURL: "https://github.com/Escaped-RDFa/namespace",
+        branch: "main"
+      },
+      shortName: "erdfa",
+      xref: "web-platform",
+      group: "community",
+      latestVersion: "https://escaped-rdfa.github.io/namespace/docs/1.0.html",
+      edDraftURI: "https://escaped-rdfa.github.io/namespace/spec/erdfa-spec-1.0.html",
+    };
+  </script>
+</head>
+<body>
+  <section id="abstract">
+    <p>
+      This specification defines the Escaped RDFa (eRDFa) namespace extension, 
+      an XML namespace that enables embedding RDFa metadata within HTML environments 
+      that do not natively support RDFa or extended markup tags. The eRDFa namespace 
+      provides a mechanism for escaping RDFa content so it can be preserved in 
+      constrained publishing platforms such as blogging systems.
+    </p>
+  </section>
+
+  <section id="sotd">
+    <p>
+      This is a community specification under active development. Comments and 
+      contributions are welcome via the GitHub repository.
+    </p>
+  </section>
+
+  <section id="introduction">
+    <h2>Introduction</h2>
+    
+    <section id="motivation">
+      <h3>Motivation</h3>
+      <p>
+        Many content management systems and blogging platforms strip or sanitize 
+        RDFa attributes from user-submitted HTML, preventing the publication of 
+        structured metadata. This specification addresses this limitation by 
+        defining a namespace and conventions for escaping RDFa content.
+      </p>
+    </section>
+
+    <section id="design-goals">
+      <h3>Design Goals</h3>
+      <ul>
+        <li>Enable RDFa embedding in restrictive HTML environments</li>
+        <li>Maintain semantic fidelity of escaped content</li>
+        <li>Provide clear distinction between examples and embedded data</li>
+        <li>Support standard HTML entity escaping mechanisms</li>
+      </ul>
+    </section>
+  </section>
+
+  <section id="conformance">
+    <p>
+      As well as sections marked as non-normative, all authoring guidelines, 
+      diagrams, examples, and notes in this specification are non-normative. 
+      Everything else in this specification is normative.
+    </p>
+    <p>
+      The key words MAY, MUST, MUST NOT, SHOULD, and SHOULD NOT are to be 
+      interpreted as described in [[!RFC2119]].
+    </p>
+  </section>
+
+  <section id="namespace">
+    <h2>Namespace Declaration</h2>
+    
+    <section id="namespace-uri">
+      <h3>Namespace URI</h3>
+      <p>The eRDFa namespace URI is:</p>
+      <pre class="example">
+https://escaped-rdfa.github.io/namespace/docs/1.0.html#
+      </pre>
+    </section>
+
+    <section id="namespace-prefix">
+      <h3>Recommended Prefix</h3>
+      <p>The recommended namespace prefix is <code>eRDFa</code>.</p>
+    </section>
+
+    <section id="namespace-declaration-example">
+      <h3>Declaration in HTML</h3>
+      <p>The namespace MUST be declared using the RDFa <code>prefix</code> attribute:</p>
+      <pre class="example" title="Namespace declaration">
+&lt;div 
+  xmlns="http://www.w3.org/1999/xhtml"
+  prefix="eRDFa: https://escaped-rdfa.github.io/namespace/docs/1.0.html#
+          other-namespace: http://example.com/namespace#"&gt;
+  &lt;!-- content --&gt;
+&lt;/div&gt;
+      </pre>
+    </section>
+
+    <section id="escaped-namespace-declaration">
+      <h3>Escaped Declaration</h3>
+      <p>When the hosting platform does not support RDFa attributes, the declaration MUST be HTML-entity escaped:</p>
+      <pre class="example" title="Escaped namespace declaration">
+&amp;lt;div 
+  xmlns=&amp;quot;http://www.w3.org/1999/xhtml&amp;quot;
+  prefix=&amp;quot;eRDFa: https://escaped-rdfa.github.io/namespace/docs/1.0.html#
+          other-namespace: http://example.com/namespace#&amp;quot;&amp;gt;
+  &amp;lt;!-- content --&amp;gt;
+&amp;lt;/div&amp;gt;
+      </pre>
+    </section>
+  </section>
+
+  <section id="vocabulary">
+    <h2>Vocabulary Terms</h2>
+    
+    <section id="term-example">
+      <h3><code>example</code></h3>
+      
+      <dl>
+        <dt>Term</dt>
+        <dd><code>eRDFa:example</code></dd>
+        
+        <dt>Description</dt>
+        <dd>Indicates that the contained RDFa markup is illustrative and MUST NOT be processed as semantic data.</dd>
+        
+        <dt>Usage</dt>
+        <dd>Applied via the <code>rel</code> attribute on a container element.</dd>
+        
+        <dt>Processing</dt>
+        <dd>Processors MUST ignore all RDFa content within elements marked with <code>rel="eRDFa:example"</code>.</dd>
+      </dl>
+
+      <pre class="example" title="Example usage">
+&lt;div 
+  xmlns="http://www.w3.org/1999/xhtml"
+  prefix="eRDFa: https://escaped-rdfa.github.io/namespace/docs/1.0.html#"&gt;
+  &lt;div rel="eRDFa:example"&gt;
+    &lt;div about="#me" vocab="http://xmlns.com/foaf/0.1/"&gt;
+      &lt;p property="name"&gt;Gregg Kellogg&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+      </pre>
+
+      <pre class="example" title="Escaped example usage">
+&amp;lt;div 
+  xmlns=&amp;quot;http://www.w3.org/1999/xhtml&amp;quot;
+  prefix=&amp;quot;eRDFa: https://escaped-rdfa.github.io/namespace/docs/1.0.html#&amp;quot;&amp;gt;
+  &amp;lt;div rel=&amp;quot;eRDFa:example&amp;quot;&amp;gt;
+    &amp;lt;div about=&amp;quot;#me&amp;quot; vocab=&amp;quot;http://xmlns.com/foaf/0.1/&amp;quot;&amp;gt;
+      &amp;lt;p property=&amp;quot;name&amp;quot;&amp;gt;Gregg Kellogg&amp;lt;/p&amp;gt;
+    &amp;lt;/div&amp;gt;
+  &amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;
+      </pre>
+    </section>
+
+    <section id="term-embedded">
+      <h3><code>embedded</code></h3>
+      
+      <dl>
+        <dt>Term</dt>
+        <dd><code>eRDFa:embedded</code></dd>
+        
+        <dt>Description</dt>
+        <dd>Indicates that the contained markup is escaped RDFa that MUST be unescaped and processed as semantic data.</dd>
+        
+        <dt>Usage</dt>
+        <dd>Applied via the <code>rel</code> attribute on a container element.</dd>
+        
+        <dt>Processing</dt>
+        <dd>Processors MUST unescape HTML entities within elements marked with <code>rel="eRDFa:embedded"</code> and process the resulting RDFa markup.</dd>
+      </dl>
+
+      <pre class="example" title="Embedded usage">
+&lt;div 
+  xmlns="http://www.w3.org/1999/xhtml"
+  prefix="eRDFa: https://escaped-rdfa.github.io/namespace/docs/1.0.html#
+          rss: http://purl.org/rss/1.0/
+          itunes: http://www.itunes.com/dtds/podcast-1.0#"&gt;
+  &lt;div rel="eRDFa:embedded"&gt;
+    &lt;div typeof="rss:rss"&gt;
+      &lt;div rel="rss:channel"&gt;
+        &lt;div typeof="rss:item"&gt;
+          &lt;div property="rss:title" content="Episode Title"&gt;&lt;/div&gt;
+          &lt;div property="rss:guid" content="1b593f7b-67e7-454c-bb80-32e8e32ada06"&gt;&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+      </pre>
+    </section>
+  </section>
+
+  <section id="processing">
+    <h2>Processing Model</h2>
+    
+    <section id="processing-steps">
+      <h3>Processing Steps</h3>
+      <p>An eRDFa processor MUST follow these steps:</p>
+      <ol>
+        <li>Parse the HTML document</li>
+        <li>Identify elements with <code>rel="eRDFa:example"</code> or <code>rel="eRDFa:embedded"</code></li>
+        <li>For <code>eRDFa:example</code> elements: Skip processing of contained RDFa</li>
+        <li>For <code>eRDFa:embedded</code> elements:
+          <ol>
+            <li>Extract the text content</li>
+            <li>Unescape HTML entities</li>
+            <li>Parse the resulting markup as RDFa</li>
+            <li>Extract triples according to RDFa processing rules</li>
+          </ol>
+        </li>
+      </ol>
+    </section>
+
+    <section id="escaping-rules">
+      <h3>Escaping Rules</h3>
+      <p>Content authors MUST escape the following characters using HTML entities:</p>
+      <table class="simple">
+        <thead>
+          <tr>
+            <th>Character</th>
+            <th>Entity</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>&lt;</td>
+            <td><code>&amp;lt;</code></td>
+          </tr>
+          <tr>
+            <td>&gt;</td>
+            <td><code>&amp;gt;</code></td>
+          </tr>
+          <tr>
+            <td>&quot;</td>
+            <td><code>&amp;quot;</code></td>
+          </tr>
+          <tr>
+            <td>&amp;</td>
+            <td><code>&amp;amp;</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </section>
+
+  <section id="use-cases">
+    <h2>Use Cases</h2>
+    
+    <section id="use-case-blogging">
+      <h3>Blogging Platforms</h3>
+      <p>
+        Platforms like Blogger and WordPress sanitize RDFa attributes. Authors can 
+        use eRDFa to embed podcast RSS metadata, FOAF profiles, or other structured 
+        data that survives the sanitization process.
+      </p>
+    </section>
+
+    <section id="use-case-documentation">
+      <h3>Documentation and Examples</h3>
+      <p>
+        Technical documentation can use <code>eRDFa:example</code> to show RDFa 
+        markup examples without having them processed as actual metadata.
+      </p>
+    </section>
+  </section>
+
+  <section id="security">
+    <h2>Security Considerations</h2>
+    
+    <section id="security-xss">
+      <h3>Cross-Site Scripting (XSS)</h3>
+      <p>
+        Processors MUST sanitize unescaped content to prevent XSS attacks. 
+        Script tags and event handlers within escaped content MUST be removed 
+        or neutralized before rendering.
+      </p>
+    </section>
+
+    <section id="security-injection">
+      <h3>Content Injection</h3>
+      <p>
+        Implementations SHOULD validate that unescaped content contains only 
+        valid RDFa markup and does not include malicious HTML or JavaScript.
+      </p>
+    </section>
+  </section>
+
+  <section id="privacy">
+    <h2>Privacy Considerations</h2>
+    <p>
+      Escaped RDFa may contain personal information. Publishers SHOULD be aware 
+      that escaped content, while not immediately visible, can be extracted and 
+      processed by eRDFa-aware tools.
+    </p>
+  </section>
+
+  <section id="examples" class="appendix">
+    <h2>Complete Examples</h2>
+    
+    <section id="example-podcast">
+      <h3>Podcast Episode Metadata</h3>
+      <pre class="example" title="Escaped podcast RSS item">
+&amp;lt;div 
+  xmlns=&amp;quot;http://www.w3.org/1999/xhtml&amp;quot;
+  prefix=&amp;quot;eRDFa: https://escaped-rdfa.github.io/namespace/docs/1.0.html#
+          itunes: http://www.itunes.com/dtds/podcast-1.0#
+          rss: http://purl.org/rss/1.0/
+          dc: http://purl.org/dc/terms/&amp;quot;&amp;gt;
+  &amp;lt;div rel=&amp;quot;eRDFa:embedded&amp;quot;&amp;gt;
+    &amp;lt;div typeof=&amp;quot;rss:rss&amp;quot;&amp;gt;
+      &amp;lt;div rel=&amp;quot;rss:channel&amp;quot;&amp;gt;
+        &amp;lt;div typeof=&amp;quot;rss:item&amp;quot;&amp;gt;
+          &amp;lt;div property=&amp;quot;rss:guid&amp;quot; 
+               content=&amp;quot;1b593f7b-67e7-454c-bb80-32e8e32ada06&amp;quot;&amp;gt;&amp;lt;/div&amp;gt;
+          &amp;lt;div property=&amp;quot;rss:pubDate&amp;quot; 
+               content=&amp;quot;Mon, 22 Jun 2020 01:02:15 GMT&amp;quot;&amp;gt;&amp;lt;/div&amp;gt;
+          &amp;lt;div property=&amp;quot;rss:title&amp;quot; 
+               content=&amp;quot;StreamOfRandom S3 The Refinement EP1 Quality&amp;quot;&amp;gt;&amp;lt;/div&amp;gt;
+          &amp;lt;div property=&amp;quot;dc:creator&amp;quot; 
+               content=&amp;quot;Jim Dupont&amp;quot;&amp;gt;&amp;lt;/div&amp;gt;
+          &amp;lt;div property=&amp;quot;itunes:dtdepisode&amp;quot; 
+               content=&amp;quot;1&amp;quot;&amp;gt;&amp;lt;/div&amp;gt;
+          &amp;lt;div property=&amp;quot;itunes:dtdseason&amp;quot; 
+               content=&amp;quot;3&amp;quot;&amp;gt;&amp;lt;/div&amp;gt;
+          &amp;lt;div property=&amp;quot;itunes:dtdduration&amp;quot; 
+               content=&amp;quot;986&amp;quot;&amp;gt;&amp;lt;/div&amp;gt;
+        &amp;lt;/div&amp;gt;
+      &amp;lt;/div&amp;gt;
+    &amp;lt;/div&amp;gt;
+  &amp;lt;/div&amp;gt;
+&amp;lt;/div&amp;gt;
+      </pre>
+    </section>
+  </section>
+
+  <section id="references" class="appendix">
+    <h2>References</h2>
+  </section>
+
+  <section id="acknowledgements" class="appendix">
+    <h2>Acknowledgements</h2>
+    <p>
+      Thanks to the RDFa community and the developers of blogging platforms 
+      that inspired this work.
+    </p>
+  </section>
+</body>
+</html>
