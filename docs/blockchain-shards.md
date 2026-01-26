@@ -45,11 +45,26 @@
 Deploy all 71 shards to testnets for validation and testing.
 
 ### Phase 2: Mainnets (Pooled Funding)
-Pool community funds to deploy to mainnets:
-- Solana: ~$0.000005 per transaction
-- Ethereum: Variable gas fees
-- Bitcoin: ~$1-5 per transaction
-- L2s (Arbitrum, Optimism, Base): ~$0.01-0.10
+Community members choose which shards to copy from testnet to mainnet.
+
+**ZK Migration Tracking:**
+- Each testnet→mainnet copy generates a ZK proof
+- Proof written to **block 2** on mainnet
+- Proves: `testnet_hash == mainnet_hash` without revealing content
+- Tracks: shard_id, migrator, timestamp
+
+```rust
+ShardMigration {
+    shard_id: 1,
+    testnet_hash: "0xabc123",
+    mainnet_hash: "0xabc123",  // Same content
+    migrator: "alice",
+    timestamp: 1234567890,
+}
+```
+
+**Block 2 Data:**
+All ZK proofs stored in block 2, creating an immutable migration ledger.
 
 ## Economic Model
 
