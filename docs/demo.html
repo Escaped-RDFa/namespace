@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>eRDFa Runtime Demo</title>
+    <style>
+        body { font-family: monospace; padding: 20px; }
+        textarea { width: 100%; height: 200px; }
+        button { padding: 10px; margin: 5px; }
+        #output { background: #f0f0f0; padding: 10px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Escaped RDFa Runtime</h1>
+    
+    <h2>Decode Shard</h2>
+    <textarea id="shard" placeholder="Paste base64-encoded shard..."></textarea>
+    <button onclick="decodeShard()">Decode</button>
+    
+    <h2>Query</h2>
+    <input type="text" id="query" placeholder="SPARQL query..." style="width: 100%">
+    <button onclick="runQuery()">Query</button>
+    
+    <h2>Output</h2>
+    <div id="output"></div>
+
+    <script type="module">
+        import init, { ERdfaRuntime } from './wasm/erdfa_runtime.js';
+        
+        let runtime;
+        
+        async function initRuntime() {
+            await init();
+            runtime = new ERdfaRuntime();
+            document.getElementById('output').innerText = `Runtime v${runtime.version()} loaded`;
+        }
+        
+        window.decodeShard = function() {
+            const shard = document.getElementById('shard').value;
+            const result = runtime.decode_shard(shard);
+            document.getElementById('output').innerText = result;
+        };
+        
+        window.runQuery = function() {
+            const query = document.getElementById('query').value;
+            const result = runtime.parse(query);
+            document.getElementById('output').innerText = result;
+        };
+        
+        initRuntime();
+    </script>
+</body>
+</html>
