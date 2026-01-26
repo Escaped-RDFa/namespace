@@ -44,7 +44,7 @@
 ### Phase 1: Testnets (Free)
 Deploy all 71 shards to testnets for validation and testing.
 
-### Phase 2: Mainnets (Pooled Funding)
+### Phase 2: Mainnets (Community Choice)
 Community members choose which shards to copy from testnet to mainnet.
 
 **ZK Migration Tracking:**
@@ -65,6 +65,28 @@ ShardMigration {
 
 **Block 2 Data:**
 All ZK proofs stored in block 2, creating an immutable migration ledger.
+
+### Phase 3: Bitcoin Mainnet (World's Largest NFT)
+
+**The Ultimate Goal:** Copy entire base1 (all 71 shards) into Bitcoin mainnet.
+
+- **Method**: Ordinals/Inscriptions
+- **Size**: 1,299,412 bytes across 71 transactions
+- **Result**: World's largest on-chain NFT
+- **Permanence**: Bitcoin's immutability guarantees eternal storage
+- **Cost**: Community-pooled funding (~$71-355 at current rates)
+
+```
+71 shards → 71 Bitcoin transactions → 1 complete eRDFa base1
+= World's largest on-chain semantic knowledge base
+```
+
+**Why Bitcoin?**
+- Most secure blockchain
+- Maximum decentralization
+- Eternal immutability
+- Cultural significance
+- Ordinals enable arbitrary data storage
 
 ## Economic Model
 

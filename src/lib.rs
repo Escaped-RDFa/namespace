@@ -13,6 +13,7 @@ pub mod shards;
 pub mod lean4;
 pub mod zk_migration;
 pub mod zkreach;
+pub mod homomorphic_mixer;
 
 use std::collections::HashMap;
 
