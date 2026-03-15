@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>eRDFa Pad — Sneakernet Encoder/Decoder</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:monospace;background:#0a0a0a;color:#0f0;padding:1em;max-width:900px;margin:0 auto}
+h1{color:#0ff;font-size:1.4em;margin-bottom:.5em}
+h2{color:#0ff;font-size:1em;margin:1em 0 .3em;border-bottom:1px solid #333;padding-bottom:.2em}
+textarea,input[type=text]{width:100%;background:#111;color:#0f0;border:1px solid #333;padding:.4em;font-family:monospace;font-size:.9em;resize:vertical}
+textarea{height:6em}
+button{background:#222;color:#0ff;border:1px solid #0ff;padding:.3em .8em;cursor:pointer;font-family:monospace;margin:.2em .2em .2em 0}
+button:hover{background:#0ff;color:#000}
+.row{display:flex;gap:.5em;flex-wrap:wrap;margin:.3em 0}
+.out{background:#111;border:1px solid #333;padding:.4em;margin:.3em 0;word-break:break-all;min-height:1.5em;font-size:.85em}
+.cid{color:#ff0;font-size:.8em}
+#store-list{max-height:10em;overflow-y:auto}
+#store-list div{padding:.2em;border-bottom:1px solid #222;cursor:pointer}
+#store-list div:hover{background:#222}
+canvas{border:1px solid #333;margin:.3em 0}
+.status{color:#888;font-size:.8em}
+</style>
+</head>
+<body>
+<h1>🔐 eRDFa Pad</h1>
+<p class="status">Sneakernet encoder/decoder — morse · BBS · QR · stego · URL · localStorage
+  <button onclick="stopAll()" style="float:right;background:#600;border-color:#f00">⏹ Stop All</button>
+</p>
+
+<h2>📝 Input</h2>
+<textarea id="input" placeholder="Type or paste content here..."></textarea>
+<div class="row">
+  <button onclick="doStore()">💾 Store</button>
+  <button onclick="doCid()">🔗 CID</button>
+  <button onclick="doSha()">🔒 SHA256</button>
+</div>
+<div class="cid" id="cid-out"></div>
+
+<h2>📡 Morse</h2>
+<div class="row">
+  <button onclick="doMorseEnc()">Encode</button>
+  <button onclick="doMorseDec()">Decode</button>
+  <button onclick="doMorsePlay()">▶ Play</button>
+  <button onclick="doMorseDl()">⬇ WAV</button>
+  WPM: <input type="text" id="wpm" value="15" style="width:3em">
+</div>
+<div class="out" id="morse-out"></div>
+
+<h2>📻 BBS / DTMF</h2>
+<div class="row">
+  <button onclick="doBbsFreqs()">Frequencies</button>
+  <button onclick="doBbsPlay()">▶ Play</button>
+  <button onclick="doBbsDl()">⬇ WAV</button>
+  Tone ms: <input type="text" id="tone-ms" value="80" style="width:3em">
+</div>
+<div class="out" id="bbs-out"></div>
+
+<h2>🔗 URL</h2>
+<div class="row">
+  <button onclick="doUrlEnc()">→ data: URL</button>
+  <button onclick="doUrlDec()">← Decode URL</button>
+</div>
+<div class="out" id="url-out" style="max-height:4em;overflow:auto"></div>
+
+<h2>📦 Base64 / QR Payload</h2>
+<div class="row">
+  <button onclick="doB64Enc()">Encode</button>
+  <button onclick="doB64Dec()">Decode</button>
+</div>
+<div class="out" id="b64-out"></div>
+
+<h2>🖼 Stego</h2>
+<div class="row">
+  <button onclick="doStegoEnc()">Encode → Image</button>
+  <button onclick="doStegoDec()">Decode ← Image</button>
+  <input type="file" id="stego-file" accept="image/*" style="display:none">
+</div>
+<canvas id="stego-canvas" width="128" height="128"></canvas>
+<div class="out" id="stego-out"></div>
+
+<h2>📼 Cassette Tape (KCS FSK)</h2>
+<div class="row">
+  <button onclick="doTapeEnc()">SAVE to tape</button>
+  <button onclick="doTapePlay()">▶ Play tape</button>
+  <button onclick="doTapeDl()">⬇ Download WAV</button>
+  <button onclick="doTapeDec()">LOAD from tape</button>
+  <input type="file" id="tape-file" accept="audio/wav,.wav" style="display:none">
+  <button onclick="document.getElementById('tape-file').click()">📂 Load WAV</button>
+  <button onclick="doTapePaste()">📋 Share to Pastebin</button>
+</div>
+<div class="out" id="tape-out"></div>
+<audio id="tape-audio" controls style="width:100%;margin:.3em 0;display:none"></audio>
+
+<h2>📻 Numbers Station — Tones</h2>
+<div class="row">
+  <button onclick="doNumEnc()">Encode</button>
+  <button onclick="doNumPlay()">▶ Play tones</button>
+  <button onclick="doNumDl()">⬇ Download WAV</button>
+  <button onclick="doNumDec()">Decode WAV</button>
+  <button onclick="doNumPaste()">📋 Share to Pastebin</button>
+</div>
+<div class="out" id="num-groups"></div>
+<audio id="num-audio" controls style="width:100%;margin:.3em 0;display:none"></audio>
+
+<h2>🗣 Numbers Station — Speech</h2>
+<div class="row">
+  <button onclick="doNumSpeak()">🗣 Browser voice</button>
+  <button onclick="doSpeechPlay()">▶ Play speech WAV</button>
+  <button onclick="doSpeechDl()">⬇ Download speech WAV</button>
+</div>
+<div class="out" id="speech-out"></div>
+<audio id="speech-audio" controls style="width:100%;margin:.3em 0;display:none"></audio>
+
+<h2>🌐 Local IPFS</h2>
+<div class="row">
+  <button onclick="doIpfsList()">List blocks</button>
+  <button onclick="doIpfsSize()">Size</button>
+  <button onclick="doExportTar()">⬇ Export .tar</button>
+  <button onclick="doSyncPastebin()">🔄 Sync to Pastebin</button>
+</div>
+<div class="out" id="ipfs-out"></div>
+<div id="ipfs-list" style="max-height:8em;overflow-y:auto;font-size:.8em"></div>
+
+<h2>💾 Local Store</h2>
+<div class="row">
+  <button onclick="doListStore()">List</button>
+  <input type="text" id="load-cid" placeholder="CID to load..." style="flex:1">
+  <button onclick="doLoadStore()">Load</button>
+</div>
+<div id="store-list"></div>
+
+<h2>🔗 RDFa Triples</h2>
+<div class="row" style="gap:.3em">
+  <input type="text" id="t-s" placeholder="Subject (URI)" style="flex:1">
+  <input type="text" id="t-p" placeholder="Predicate (URI)" style="flex:1">
+  <input type="text" id="t-o" placeholder="Object (value)" style="flex:1">
+</div>
+<div class="row">
+  <button onclick="doAddTriple()">➕ Add Triple</button>
+  <button onclick="doQueryTriples()">🔍 Query</button>
+  <button onclick="doExportRdfa()">📄 Export RDFa</button>
+  <button onclick="doExportNT()">📄 N-Triples</button>
+  <button onclick="doImportNT()">📥 Import N-Triples</button>
+  <button onclick="doClearTriples()">🗑 Clear</button>
+</div>
+<div class="out" id="triple-out" style="max-height:12em;overflow:auto"></div>
+<div class="out" id="triple-export" style="max-height:8em;overflow:auto;white-space:pre;font-size:.8em"></div>
+
+<script type="module">
+import init, { Pad, TripleStore } from './pkg/erdfa_wasm.js';
+
+let pad, triples;
+async function setup() {
+  await init();
+  pad = new Pad();
+  triples = new TripleStore();
+  window._pad = pad;
+  window._triples = triples;
+  document.getElementById('cid-out').textContent = '✅ WASM loaded';
+}
+setup();
+
+const $ = id => document.getElementById(id);
+const val = () => $('input').value;
+const set = (id, v) => $(id).textContent = v;
+
+// -- Stop all audio before playing anything new --
+let activeCtx = null;
+function stopAll() {
+  if (activeCtx) try { activeCtx.close(); } catch(e) {}
+  activeCtx = null;
+  document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
+  window.speechSynthesis.cancel();
+}
+
+window.doCid = () => set('cid-out', pad.cid(val()));
+window.doSha = () => set('cid-out', pad.sha256(val()));
+
+window.doMorseEnc = () => set('morse-out', pad.to_morse(val()));
+window.doMorseDec = () => $('input').value = pad.from_morse($('morse-out').textContent);
+window.doMorsePlay = () => {
+  stopAll();
+  const wpm = parseFloat($('wpm').value) || 15;
+  const wav = pad.to_morse_wav(val(), wpm);
+  const cid = pad.ipfs_put_dasl(wav, 'audio/wav', 'morse', val());
+  const audio = new Audio(URL.createObjectURL(new Blob([wav], {type:'audio/wav'})));
+  audio.play();
+  set('morse-out', pad.to_morse(val()) + '\n→ IPFS: ' + cid);
+  window._lastMorseWav = wav;
+};
+window.doMorseDl = () => {
+  const wpm = parseFloat($('wpm').value) || 15;
+  const wav = pad.to_morse_wav(val(), wpm);
+  downloadWav(wav, 'morse-' + Date.now() + '.wav');
+};
+
+window.doBbsFreqs = () => set('bbs-out', pad.to_dtmf_freqs(val()));
+window.doBbsPlay = () => {
+  stopAll();
+  const ms = parseFloat($('tone-ms').value) || 80;
+  const wav = pad.to_bbs_wav(val(), ms);
+  const cid = pad.ipfs_put_dasl(wav, 'audio/wav', 'bbs-dtmf', val());
+  const audio = new Audio(URL.createObjectURL(new Blob([wav], {type:'audio/wav'})));
+  audio.play();
+  set('bbs-out', pad.to_dtmf_freqs(val()) + '\n→ IPFS: ' + cid);
+  window._lastBbsWav = wav;
+};
+window.doBbsDl = () => {
+  const ms = parseFloat($('tone-ms').value) || 80;
+  const wav = pad.to_bbs_wav(val(), ms);
+  downloadWav(wav, 'bbs-dtmf-' + Date.now() + '.wav');
+};
+
+window.doUrlEnc = () => set('url-out', pad.to_data_url(val(), 'text/plain'));
+window.doUrlDec = () => {
+  const d = pad.from_data_url($('url-out').textContent);
+  if (d) $('input').value = d;
+};
+
+window.doB64Enc = () => set('b64-out', pad.to_base64(val()));
+window.doB64Dec = () => {
+  const d = pad.from_base64($('b64-out').textContent);
+  if (d) $('input').value = d;
+};
+
+window.doStegoEnc = () => {
+  const canvas = $('stego-canvas');
+  const w = canvas.width, h = canvas.height;
+  const pixels = pad.stego_encode(val(), w, h);
+  const ctx = canvas.getContext('2d');
+  const img = new ImageData(new Uint8ClampedArray(pixels), w, h);
+  ctx.putImageData(img, 0, 0);
+  set('stego-out', `Encoded ${val().length} bytes into ${w}×${h} image`);
+};
+
+window.doStegoDec = () => {
+  const canvas = $('stego-canvas');
+  const ctx = canvas.getContext('2d');
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const decoded = pad.stego_decode(new Uint8Array(img.data.buffer));
+  if (decoded) {
+    $('input').value = decoded;
+    set('stego-out', `Decoded ${decoded.length} chars`);
+  }
+};
+
+// File upload for stego decode
+$('stego-file').onchange = e => {
+  const file = e.target.files[0]; if (!file) return;
+  const img = new Image();
+  img.onload = () => {
+    const canvas = $('stego-canvas');
+    canvas.width = img.width; canvas.height = img.height;
+    canvas.getContext('2d').drawImage(img, 0, 0);
+    set('stego-out', `Loaded ${img.width}×${img.height}`);
+  };
+  img.src = URL.createObjectURL(file);
+};
+
+window.doStore = () => {
+  const cid = pad.store_paste(val());
+  set('cid-out', `Stored: ${cid}`);
+  doListStore();
+};
+
+window.doLoadStore = () => {
+  const cid = $('load-cid').value;
+  const data = pad.load_paste(cid);
+  if (data) { $('input').value = data; set('cid-out', cid); }
+  else set('cid-out', 'Not found');
+};
+
+window.doListStore = () => {
+  const cids = JSON.parse(pad.list_pastes());
+  $('store-list').innerHTML = cids.map(c =>
+    `<div onclick="document.getElementById('load-cid').value='${c}';doLoadStore()">${c}</div>`
+  ).join('');
+};
+
+// -- Tape --
+let lastTapeWav = null;
+let lastNumWav = null;
+
+function downloadWav(bytes, name) {
+  const blob = new Blob([bytes], {type: 'audio/wav'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+async function shareToPastebin(wavBytes, title) {
+  const b64 = btoa(String.fromCharCode(...wavBytes));
+  const url = '/pastebin/upload';
+  try {
+    const form = new FormData();
+    form.append('file', new Blob([wavBytes], {type:'audio/wav'}), title + '.wav');
+    const resp = await fetch(url, {method:'POST', body: form});
+    const json = await resp.json();
+    set('tape-out', `Shared: ${json.url || json.id || 'ok'}`);
+  } catch(e) {
+    // Fallback: store locally
+    const cid = pad.store_paste(b64);
+    set('tape-out', `Stored locally: ${cid} (pastebin unreachable)`);
+  }
+}
+
+window.doTapeEnc = () => {
+  lastTapeWav = pad.to_tape_wav(val());
+  const audio = $('tape-audio');
+  audio.src = URL.createObjectURL(new Blob([lastTapeWav], {type:'audio/wav'}));
+  audio.style.display = 'block';
+  set('tape-out', `Tape: ${val().length} bytes → ${lastTapeWav.length} bytes WAV`);
+};
+window.doTapePlay = () => { stopAll(); $('tape-audio').play(); };
+window.doTapeDl = () => {
+  if (lastTapeWav) downloadWav(lastTapeWav, 'tape-' + Date.now() + '.wav');
+};
+window.doTapeDec = () => { set('tape-out', 'Load a WAV file to decode'); };
+window.doTapePaste = () => {
+  if (lastTapeWav) shareToPastebin(lastTapeWav, 'tape-' + Date.now());
+};
+$('tape-file').onchange = async e => {
+  const file = e.target.files[0]; if (!file) return;
+  const buf = new Uint8Array(await file.arrayBuffer());
+  const decoded = pad.from_tape_wav(buf);
+  if (decoded) {
+    $('input').value = decoded;
+    set('tape-out', `Decoded ${decoded.length} chars from tape`);
+  } else {
+    set('tape-out', 'Failed to decode tape');
+  }
+};
+
+// -- Numbers Station --
+window.doNumEnc = () => {
+  const groups = pad.to_number_groups(val());
+  set('num-groups', groups);
+};
+window.doNumPlay = () => {
+  stopAll();
+  doNumEnc();
+  lastNumWav = pad.to_numbers_wav(val());
+  const audio = $('num-audio');
+  audio.src = URL.createObjectURL(new Blob([lastNumWav], {type:'audio/wav'}));
+  audio.style.display = 'block';
+  audio.play();
+};
+window.doNumDl = () => {
+  if (lastNumWav) downloadWav(lastNumWav, 'numbers-' + Date.now() + '.wav');
+};
+window.doNumSpeak = () => {
+  stopAll();
+  const groups = pad.to_number_groups(val());
+  let text = 'Attention. Attention. Message follows. ';
+  for (const c of groups.split(' ')) {
+    text += c.split('').join('. ') + '. . ';
+  }
+  text += 'End of message. End of message.';
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.rate = 0.7;
+  utt.pitch = 0.8;
+  window.speechSynthesis.speak(utt);
+  set('speech-out', groups);
+};
+let lastSpeechWav = null;
+let digitsLoaded = false;
+async function ensureDigits() {
+  if (digitsLoaded) return;
+  set('speech-out', 'Loading voice samples…');
+  await Promise.all([...Array(10).keys()].map(async d => {
+    const r = await fetch('samples/d' + d + '.raw');
+    const buf = new Uint8Array(await r.arrayBuffer());
+    pad.load_digit_pcm(d, buf);
+  }));
+  digitsLoaded = true;
+}
+window.doSpeechPlay = async () => {
+  stopAll();
+  await ensureDigits();
+  lastSpeechWav = pad.to_numbers_speech_wav(val());
+  const audio = $('speech-audio');
+  audio.src = URL.createObjectURL(new Blob([lastSpeechWav], {type:'audio/wav'}));
+  audio.style.display = 'block';
+  audio.play();
+  const cid = pad.ipfs_put_dasl(lastSpeechWav, 'audio/wav', 'numbers-speech', val());
+  set('speech-out', pad.to_number_groups(val()) + ' → IPFS: ' + cid);
+};
+window.doSpeechDl = async () => {
+  await ensureDigits();
+  if (!lastSpeechWav) lastSpeechWav = pad.to_numbers_speech_wav(val());
+  downloadWav(lastSpeechWav, 'numbers-speech-' + Date.now() + '.wav');
+};
+window.doNumDec = () => {
+  set('num-groups', 'Load a numbers station WAV to decode');
+};
+window.doNumPaste = () => {
+  if (lastNumWav) shareToPastebin(lastNumWav, 'numbers-' + Date.now());
+};
+
+// -- Triples --
+function renderTriples(json) {
+  const list = JSON.parse(json);
+  $('triple-out').innerHTML = list.map(t =>
+    `<div style="border-bottom:1px solid #222;padding:2px">&lt;${t.s}&gt; &lt;${t.p}&gt; "${t.o}"</div>`
+  ).join('');
+}
+window.doAddTriple = () => {
+  const cid = triples.add($('t-s').value, $('t-p').value, $('t-o').value);
+  set('triple-export', 'Added: ' + cid);
+  renderTriples(triples.list());
+};
+window.doQueryTriples = () => {
+  renderTriples(triples.query($('t-s').value, $('t-p').value, $('t-o').value));
+};
+window.doExportRdfa = () => { set('triple-export', triples.to_rdfa()); };
+window.doExportNT = () => { set('triple-export', triples.to_ntriples()); };
+window.doImportNT = () => {
+  const n = triples.from_ntriples(val());
+  set('triple-export', `Imported ${n} triples`);
+  renderTriples(triples.list());
+};
+window.doClearTriples = () => {
+  triples.clear();
+  $('triple-out').innerHTML = '';
+  set('triple-export', 'Cleared');
+};
+
+// -- Local IPFS --
+window.doIpfsList = () => {
+  const cids = JSON.parse(pad.ipfs_list());
+  const icons = {morse:'📡', 'bbs-dtmf':'📞', 'numbers-station':'🔢', 'cassette-kcs':'📼', 'stego-lsb':'🖼', 'text/x-morse':'📡', raw:'📄'};
+  // Group by source
+  const groups = {};
+  const orphans = [];
+  cids.forEach(c => {
+    const raw = pad.ipfs_meta(c);
+    let m = null;
+    if (raw) { try { m = JSON.parse(raw); } catch(e) {} }
+    const entry = {cid: c, meta: m, raw};
+    if (m && m.source) {
+      const key = m.source;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(entry);
+    } else {
+      orphans.push(entry);
+    }
+  });
+  let html = '';
+  for (const [src, entries] of Object.entries(groups)) {
+    const srcCid = pad.cid(src);
+    const label = src.length > 50 ? src.slice(0,50)+'…' : src;
+    html += `<div style="margin:4px 0;padding:4px;border:1px solid #333;border-radius:4px">`;
+    html += `<div style="color:#ff0">📝 "${label}" <span style="color:#666">${srcCid.slice(0,16)}…</span></div>`;
+    entries.forEach(e => {
+      const m = e.meta;
+      const icon = icons[m.encoding] || '📦';
+      const date = m.created ? new Date(m.created).toLocaleTimeString() : '';
+      html += `<div style="padding-left:20px;color:#0f0">↳ ${icon} ${m.encoding} <span style="color:#888">${e.cid.slice(0,16)}…</span> <span style="color:#666">${(m.size/1024).toFixed(1)}KB ${m.mime}</span> <span style="color:#aa0">${date}</span></div>`;
+    });
+    html += `</div>`;
+  }
+  orphans.forEach(e => {
+    const mime = e.meta ? e.meta.mime || e.raw : (e.raw || '?');
+    html += `<div style="color:#888;padding:2px 0">📦 ${e.cid.slice(0,16)}… ${mime}</div>`;
+  });
+  $('ipfs-list').innerHTML = html;
+  set('ipfs-out', `${cids.length} blocks, ${Object.keys(groups).length} sources`);
+};
+window.doIpfsSize = () => {
+  set('ipfs-out', `${(pad.ipfs_size() / 1024).toFixed(1)} KB in local IPFS`);
+};
+window.doExportTar = () => {
+  const tar = pad.export_tar();
+  const blob = new Blob([tar], {type: 'application/x-tar'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'erdfa-ipfs-' + Date.now() + '.tar';
+  a.click();
+  set('ipfs-out', `Exported ${tar.length} bytes`);
+};
+window.doSyncPastebin = async () => {
+  const cids = JSON.parse(pad.ipfs_list());
+  let ok = 0;
+  for (const cid of cids) {
+    const data = pad.ipfs_get(cid);
+    if (!data) continue;
+    try {
+      const form = new FormData();
+      form.append('file', new Blob([data]), cid);
+      await fetch('/pastebin/upload', {method:'POST', body: form});
+      ok++;
+    } catch(e) {}
+  }
+  set('ipfs-out', `Synced ${ok}/${cids.length} blocks to pastebin`);
+};
+
+// -- Auto-IPFS on encode --
+const origTapeEnc = window.doTapeEnc;
+window.doTapeEnc = () => {
+  origTapeEnc();
+  if (lastTapeWav) {
+    const cid = pad.ipfs_put_dasl(lastTapeWav, 'audio/wav', 'cassette-kcs', val());
+    set('tape-out', $('tape-out').textContent + ' → IPFS: ' + cid);
+  }
+};
+const origNumPlay = window.doNumPlay;
+window.doNumPlay = () => {
+  origNumPlay();
+  if (lastNumWav) {
+    const cid = pad.ipfs_put_dasl(lastNumWav, 'audio/wav', 'numbers-station', val());
+    set('num-groups', $('num-groups').textContent + ' → IPFS: ' + cid);
+  }
+};
+const origMorseEnc = window.doMorseEnc;
+window.doMorseEnc = () => {
+  origMorseEnc();
+  const morse = $('morse-out').textContent;
+  const cid = pad.ipfs_put_dasl(new TextEncoder().encode(morse), 'text/x-morse', 'morse', val());
+  set('morse-out', morse + '\n→ IPFS: ' + cid);
+};
+const origStegoEnc = window.doStegoEnc;
+window.doStegoEnc = () => {
+  origStegoEnc();
+  const canvas = $('stego-canvas');
+  canvas.toBlob(blob => {
+    if (!blob) return;
+    blob.arrayBuffer().then(buf => {
+      const cid = pad.ipfs_put_dasl(new Uint8Array(buf), 'image/png', 'stego-lsb', val());
+      set('stego-out', $('stego-out').textContent + ' → IPFS: ' + cid);
+    });
+  }, 'image/png');
+};
+</script>
+</body>
+</html>
