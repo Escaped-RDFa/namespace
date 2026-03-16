@@ -71,14 +71,22 @@ canvas{border:1px solid #333;margin:.3em 0}
 </div>
 <div class="out" id="b64-out"></div>
 
-<h2>🖼 Stego</h2>
+<h2>🖼 Stego Meme</h2>
 <div class="row">
-  <button onclick="doStegoEnc()">Encode → Image</button>
-  <button onclick="doStegoDec()">Decode ← Image</button>
-  <input type="file" id="stego-file" accept="image/*" style="display:none">
+  <input type="text" id="meme-top" placeholder="TOP TEXT" style="width:40%">
+  <input type="text" id="meme-bot" placeholder="BOTTOM TEXT" style="width:40%">
 </div>
-<canvas id="stego-canvas" width="128" height="128"></canvas>
-<div class="out" id="stego-out"></div>
+<div class="row">
+  <button onclick="doStegoEnc()">Encode → Meme</button>
+  <button onclick="doStegoDec()">Decode ← Image</button>
+  <button onclick="doStegoDl()">⬇ Download</button>
+  <label style="color:#888;font-size:.8em">Image: <input type="file" id="stego-file" accept="image/*" style="width:100px"></label>
+</div>
+<div style="display:flex;gap:.5em;align-items:start">
+  <canvas id="stego-canvas" width="256" height="256"></canvas>
+  <img id="carrier-preview" src="https://placekitten.com/256/256" crossorigin="anonymous" style="width:256px;height:256px;border:1px solid #333;object-fit:cover">
+</div>
+<div class="out" id="stego-out">Ctrl+V to paste image, or use file picker</div>
 
 <h2>📼 Cassette Tape (KCS FSK)</h2>
 <div class="row">
@@ -227,37 +235,103 @@ window.doB64Dec = () => {
 
 window.doStegoEnc = () => {
   const canvas = $('stego-canvas');
-  const w = canvas.width, h = canvas.height;
-  const pixels = pad.stego_encode(val(), w, h);
+  const carrier = $('carrier-preview');
+  const w = carrier.naturalWidth || 256, h = carrier.naturalHeight || 256;
+  canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext('2d');
+  ctx.drawImage(carrier, 0, 0, w, h);
+  // Meme text overlay
+  const top = ($('meme-top').value || '').toUpperCase();
+  const bot = ($('meme-bot').value || '').toUpperCase();
+  if (top || bot) {
+    const sz = Math.max(16, Math.floor(w / 12));
+    ctx.font = `bold ${sz}px Impact, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.lineWidth = Math.max(2, sz / 8);
+    ctx.strokeStyle = '#000'; ctx.fillStyle = '#fff';
+    if (top) { ctx.strokeText(top, w/2, sz+8); ctx.fillText(top, w/2, sz+8); }
+    if (bot) { ctx.strokeText(bot, w/2, h-12); ctx.fillText(bot, w/2, h-12); }
+  }
+  const carrierData = new Uint8Array(ctx.getImageData(0, 0, w, h).data.buffer);
+  const pixels = pad.stego_encode(val(), carrierData, w, h);
   const img = new ImageData(new Uint8ClampedArray(pixels), w, h);
   ctx.putImageData(img, 0, 0);
-  set('stego-out', `Encoded ${val().length} bytes into ${w}×${h} image`);
+  const cap = Math.floor((Math.floor(w/8) * Math.floor(h/8) * 4) / 7 / 8) - 4;
+  set('stego-out', `Encoded ${val().length}/${cap} bytes into ${w}×${h} meme (DCT+7x ECC, survives JPEG)`);
 };
 
 window.doStegoDec = () => {
   const canvas = $('stego-canvas');
+  const w = canvas.width, h = canvas.height;
+  if (w < 8 || h < 8) { set('stego-out', 'Load an image first'); return; }
   const ctx = canvas.getContext('2d');
-  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const decoded = pad.stego_decode(new Uint8Array(img.data.buffer));
+  const img = ctx.getImageData(0, 0, w, h);
+  const decoded = pad.stego_decode(new Uint8Array(img.data.buffer), w, h);
   if (decoded) {
     $('input').value = decoded;
-    set('stego-out', `Decoded ${decoded.length} chars`);
+    set('stego-out', `✅ Decoded ${decoded.length} chars`);
+  } else {
+    set('stego-out', 'No hidden data — encode first or load a stego image');
   }
 };
 
-// File upload for stego decode
-$('stego-file').onchange = e => {
-  const file = e.target.files[0]; if (!file) return;
+window.doStegoDl = () => {
+  const canvas = $('stego-canvas');
+  if (!canvas.width) return;
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = 'stego-' + Date.now() + '.png';
+  a.click();
+};
+
+// Load image into canvas + preview, auto-decode
+function loadImageFile(file) {
   const img = new Image();
   img.onload = () => {
     const canvas = $('stego-canvas');
-    canvas.width = img.width; canvas.height = img.height;
+    canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
     canvas.getContext('2d').drawImage(img, 0, 0);
-    set('stego-out', `Loaded ${img.width}×${img.height}`);
+    $('carrier-preview').src = img.src;
+    set('stego-out', `Loaded ${img.naturalWidth}×${img.naturalHeight}`);
+    doStegoDec();
   };
   img.src = URL.createObjectURL(file);
+}
+
+$('stego-file').onchange = e => {
+  const file = e.target.files[0]; if (!file) return;
+  loadImageFile(file);
 };
+
+// Paste image from clipboard
+document.addEventListener('paste', e => {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      loadImageFile(item.getAsFile());
+      return;
+    }
+  }
+});
+
+// Detect base64 image in input field
+$('input').addEventListener('input', e => {
+  const v = e.target.value.trim();
+  if (v.startsWith('data:image/')) {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = $('stego-canvas');
+      canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+      canvas.getContext('2d').drawImage(img, 0, 0);
+      $('carrier-preview').src = v;
+      set('stego-out', `Loaded base64 image ${img.naturalWidth}×${img.naturalHeight}`);
+      doStegoDec();
+    };
+    img.src = v;
+  }
+});
 
 window.doStore = () => {
   const cid = pad.store_paste(val());
