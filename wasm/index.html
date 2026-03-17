@@ -139,6 +139,15 @@ canvas{border:1px solid #333;margin:.3em 0}
 </div>
 <div id="store-list"></div>
 
+<h2>🔗 Pipeline URL</h2>
+<div class="row">
+  <button onclick="doShareUrl()">📤 Share URL</button>
+  <button onclick="doRunPipeline()">▶ Run Pipeline</button>
+  <input type="text" id="pipe-ops" placeholder="ops: morse,base64,cid (comma-sep)" style="flex:1">
+</div>
+<div class="out" id="pipe-out" style="max-height:6em;overflow:auto;white-space:pre"></div>
+<div id="render-out" style="margin:.3em 0"></div>
+
 <h2>🔗 RDFa Triples</h2>
 <div class="row" style="gap:.3em">
   <input type="text" id="t-s" placeholder="Subject (URI)" style="flex:1">
@@ -167,12 +176,260 @@ async function setup() {
   window._pad = pad;
   window._triples = triples;
   document.getElementById('cid-out').textContent = '✅ WASM loaded';
+  // Auto-execute URL pipeline after init
+  await loadFromUrl();
 }
 setup();
 
 const $ = id => document.getElementById(id);
 const val = () => $('input').value;
 const set = (id, v) => $(id).textContent = v;
+
+// ── URL Pipeline Engine ──────────────────────────────────────────
+// Nested query string parser (PHP-style: key[sub]=val, key[]=val)
+function parseNQS(qs) {
+  const out = {};
+  for (const part of qs.split('&')) {
+    if (!part) continue;
+    const eq = part.indexOf('=');
+    const rawKey = eq < 0 ? part : part.slice(0, eq);
+    const rawVal = eq < 0 ? '' : decodeURIComponent(part.slice(eq + 1).replace(/\+/g, ' '));
+    const keys = [];
+    let k = rawKey, m;
+    const base = k.match(/^([^[]*)/);
+    if (base) { keys.push(decodeURIComponent(base[1].replace(/\+/g, ' '))); k = k.slice(base[1].length); }
+    while ((m = k.match(/^\[([^\]]*)\]/))) { keys.push(m[1]); k = k.slice(m[0].length); }
+    let cur = out;
+    for (let i = 0; i < keys.length - 1; i++) {
+      const key = keys[i], next = keys[i + 1];
+      if (!(key in cur)) cur[key] = (next === '' || /^\d+$/.test(next)) ? [] : {};
+      cur = cur[key];
+    }
+    const last = keys[keys.length - 1];
+    if (last === '') { if (Array.isArray(cur)) cur.push(rawVal); }
+    else cur[last] = rawVal;
+  }
+  return out;
+}
+
+// Encode object → nested query string
+function toNQS(obj, prefix) {
+  const parts = [];
+  for (const [k, v] of Object.entries(obj)) {
+    const key = prefix ? `${prefix}[${k}]` : k;
+    if (v && typeof v === 'object') parts.push(toNQS(v, key));
+    else parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(v ?? '')}`);
+  }
+  return parts.join('&');
+}
+
+// Fetch a URL value (text or image)
+async function fetchUrl(url) {
+  try {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(r.status);
+    return r;
+  } catch(e) {
+    // CORS proxy fallback
+    const proxy = 'https://corsproxy.io/?' + encodeURIComponent(url);
+    return fetch(proxy);
+  }
+}
+
+async function fetchText(url) { return (await fetchUrl(url)).text(); }
+
+async function fetchImage(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    // Try direct first, proxy on error
+    img.src = url;
+    setTimeout(() => {
+      if (!img.complete) img.src = 'https://corsproxy.io/?' + encodeURIComponent(url);
+    }, 3000);
+  });
+}
+
+// Operation registry — each takes current text, returns result string
+const OPS = {
+  morse:    () => pad.to_morse(val()),
+  demorse:  () => { const r = pad.from_morse(val()); $('input').value = r; return r; },
+  base64:   () => pad.to_base64(val()),
+  debase64: () => { const r = pad.from_base64(val()); $('input').value = r; return r; },
+  cid:      () => pad.cid(val()),
+  sha256:   () => pad.sha256(val()),
+  url:      () => pad.to_data_url(val(), 'text/plain'),
+  stego:    () => { doStegoEnc(); return $('stego-out').textContent; },
+  destego:  () => { doStegoDec(); return $('stego-dec')?.textContent || ''; },
+  tape:     () => { doTapeEnc(); return $('tape-out').textContent; },
+  numbers:  () => { doNumEnc(); return $('num-groups').textContent; },
+  ipfs:     () => { const cid = pad.ipfs_put(new TextEncoder().encode(val()), 'text/plain'); return cid; },
+  ntriples: () => triples.to_ntriples(),
+  rdfa:     () => triples.to_rdfa(),
+};
+
+// Run a pipeline: comma-separated ops or RDFa triple graph
+async function runPipeline(ops, text, params) {
+  if (text) $('input').value = text;
+  const log = [];
+  const nodes = {}; // for triple-based pipeline
+  
+  // Check for triple-based pipeline (pipe[N][s/p/o])
+  if (params?.pipe) {
+    const steps = Array.isArray(params.pipe) ? params.pipe : Object.values(params.pipe);
+    // Build graph: s → {p, o}
+    const edges = steps.map(t => ({s: t.s, p: t.p, o: t.o}));
+    // Find source nodes (not targets of any edge)
+    const targets = new Set(edges.map(e => e.o));
+    const sources = edges.filter(e => !targets.has(e.s) || e.s === '_:input');
+    // Topological walk
+    nodes['_:input'] = val();
+    const visited = new Set();
+    const queue = sources.length ? sources : edges;
+    let safety = 100;
+    while (queue.length && --safety > 0) {
+      const edge = queue.shift();
+      if (visited.has(JSON.stringify(edge))) continue;
+      if (!(edge.s in nodes) && edge.s !== '_:input') { queue.push(edge); continue; }
+      $('input').value = nodes[edge.s] || val();
+      const op = OPS[edge.p];
+      if (op) {
+        const result = op();
+        nodes[edge.o] = result;
+        log.push(`${edge.s} →[${edge.p}]→ ${edge.o}: ${result.slice(0, 80)}`);
+        visited.add(JSON.stringify(edge));
+        // Enqueue edges from this output
+        edges.filter(e => e.s === edge.o && !visited.has(JSON.stringify(e))).forEach(e => queue.push(e));
+      }
+    }
+    // Final result is the last node with no outgoing edges
+    const outs = new Set(edges.map(e => e.s));
+    const terminals = edges.map(e => e.o).filter(o => !outs.has(o));
+    const result = nodes[terminals[0]] || nodes['_:output'] || Object.values(nodes).pop();
+    $('input').value = result;
+    set('pipe-out', log.join('\n'));
+    return result;
+  }
+  
+  // Simple comma-separated pipeline
+  const opList = (ops || '').split(',').map(s => s.trim()).filter(Boolean);
+  let result = val();
+  for (const opName of opList) {
+    const op = OPS[opName];
+    if (op) {
+      result = op();
+      $('input').value = result;
+      log.push(`${opName}: ${result.slice(0, 80)}`);
+    } else {
+      log.push(`⚠ unknown op: ${opName}`);
+    }
+  }
+  set('pipe-out', log.join('\n'));
+  return result;
+}
+
+// Render template: {{var}} replacement
+function renderTemplate(tpl, vars) {
+  return tpl.replace(/\{\{(\w+)\}\}/g, (_, k) => vars[k] ?? '');
+}
+
+// Generate shareable URL from current state
+window.doShareUrl = () => {
+  const state = { text: val() };
+  const ops = $('pipe-ops').value.trim();
+  if (ops) state.op = ops;
+  const top = $('meme-top').value; if (top) state['meme-top'] = top;
+  const bot = $('meme-bot').value; if (bot) state['meme-bot'] = bot;
+  // Include triples if any
+  const nt = triples.to_ntriples();
+  if (nt) state.triples = nt;
+  const url = location.origin + location.pathname + '?' + toNQS(state);
+  set('pipe-out', url);
+  navigator.clipboard?.writeText(url);
+};
+
+// Manual pipeline run
+window.doRunPipeline = async () => {
+  const ops = $('pipe-ops').value.trim();
+  await runPipeline(ops, null, null);
+};
+
+// ── URL param auto-execute on load ──
+async function loadFromUrl() {
+  const qs = location.search.slice(1);
+  if (!qs) return;
+  const params = parseNQS(qs);
+  set('pipe-out', '⏳ Loading from URL...');
+  
+  // Fetch text (or use literal)
+  let text = params.text || '';
+  if (text.match(/^https?:\/\//)) {
+    try { text = await fetchText(text); } catch(e) { set('pipe-out', '❌ fetch text: ' + e); }
+  }
+  $('input').value = text;
+  
+  // Fetch carrier image
+  if (params.carrier) {
+    try {
+      const img = await fetchImage(params.carrier);
+      $('carrier-preview').src = img.src;
+    } catch(e) { set('pipe-out', '❌ fetch carrier: ' + e); }
+  }
+  
+  // Meme text
+  if (params['meme-top']) $('meme-top').value = params['meme-top'];
+  if (params['meme-bot']) $('meme-bot').value = params['meme-bot'];
+  
+  // Import triples
+  if (params.triples) {
+    if (params.triples.match(/^https?:\/\//)) {
+      try { params.triples = await fetchText(params.triples); } catch(e) {}
+    }
+    triples.from_ntriples(params.triples);
+  }
+  
+  // Import @graph (JSON-LD via nested query string → RDFa triples)
+  if (params['@graph']) {
+    const graph = Array.isArray(params['@graph']) ? params['@graph'] : [params['@graph']];
+    for (const node of graph) {
+      const id = node['@id'] || '_:b' + Math.random().toString(36).slice(2, 8);
+      for (const [pred, obj] of Object.entries(node)) {
+        if (pred === '@id' || pred === '@type') continue;
+        const oval = typeof obj === 'object' ? (obj['@id'] || JSON.stringify(obj)) : obj;
+        triples.add(id, pred, oval);
+      }
+      if (node['@type']) triples.add(id, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type', node['@type']);
+    }
+  }
+  
+  // Run pipeline
+  const ops = params.op || params.ops || '';
+  let result = text;
+  if (ops || params.pipe) {
+    result = await runPipeline(ops, text, params);
+  }
+  
+  // Render template
+  if (params.render) {
+    let tpl = params.render;
+    if (tpl.match(/^https?:\/\//)) {
+      try { tpl = await fetchText(tpl); } catch(e) {}
+    }
+    const vars = {
+      input: text, output: result, text, result,
+      cid: pad.cid(text), sha256: pad.sha256(text),
+      morse: pad.to_morse(text), base64: pad.to_base64(text),
+      triples: triples.to_ntriples(), rdfa: triples.to_rdfa(),
+    };
+    $('render-out').innerHTML = renderTemplate(tpl, vars);
+  }
+  
+  set('pipe-out', (ops || params.pipe) ? $('pipe-out').textContent : '✅ Loaded from URL');
+}
+
+// loadFromUrl() is called from setup() after WASM init
 
 // -- Stop all audio before playing anything new --
 let activeCtx = null;
