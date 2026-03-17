@@ -513,8 +513,8 @@ window.doStegoEnc = () => {
   const pixels = pad.stego_encode(val(), carrierData, w, h);
   const img = new ImageData(new Uint8ClampedArray(pixels), w, h);
   ctx.putImageData(img, 0, 0);
-  const cap = Math.floor((Math.floor(w/8) * Math.floor(h/8) * 4) / 7 / 8) - 4;
-  set('stego-out', `Encoded ${val().length}/${cap} bytes into ${w}×${h} meme (DCT+7x ECC, survives JPEG)`);
+  const cap = Math.floor((Math.floor(w/8) * Math.floor(h/8) * 4) / 7 * 4 / 8) - 4;
+  set('stego-out', `Encoded ${val().length}/${cap} bytes into ${w}×${h} meme (DCT+Hamming(7,4)+CRC, survives JPEG)`);
 };
 
 window.doStegoDec = () => {
