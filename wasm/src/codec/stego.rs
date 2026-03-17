@@ -1,4 +1,10 @@
 // === Stego: DCT + QIM + Hamming(7,4) + CRC-16 + PRNG keying + Luma ===
+//
+// Design: PNG output, pixel-domain DCT embedding. Adaptive QIM step provides
+// robustness margin against JPEG re-compression by social media (Discord, X).
+// Our DCT grid aligns with JPEG's (both start at 0,0) so the embedding
+// survives standard re-compression. Crop/resize breaks alignment — that's
+// accepted as a channel limitation.
 
 // --- Hamming(7,4) systematic: [d0,d1,d2,d3,p0,p1,p2] ---
 // p0=d0^d1^d3, p1=d0^d2^d3, p2=d1^d2^d3
@@ -132,7 +138,12 @@ const QIM_MARGIN: f32 = 2.0; // robustness margin over quantization step
 pub(crate) const EMBED_POS: [(usize, usize); 4] = [(1,2), (2,1), (2,2), (3,1)];
 
 fn jpeg_q_scale(quality: u8) -> f32 {
-    if quality < 50 { 5000.0 / quality as f32 } else { (200 - 2 * quality as u16) as f32 }
+    match quality {
+        0 => 5000.0,
+        1..=49 => 5000.0 / quality as f32,
+        50..=99 => (200 - 2 * quality as u16) as f32,
+        _ => 1.0, // Q=100: near-lossless, minimal quantization
+    }
 }
 
 fn adaptive_step(pos: (usize, usize), quality: u8) -> f32 {
@@ -144,8 +155,11 @@ fn adaptive_step(pos: (usize, usize), quality: u8) -> f32 {
 // --- QIM with adaptive step ---
 pub(crate) fn qim_embed_s(coeff: f32, bit: u8, step: f32) -> f32 {
     let q = (coeff / step).round() as i32;
-    let target = if (q & 1) as u8 == bit { q } else if coeff >= q as f32 * step { q + 1 } else { q - 1 };
-    target as f32 * step
+    if (q & 1) as u8 == bit { return q as f32 * step; }
+    // Snap to closer neighbor with matching parity
+    let up = q + 1;
+    let dn = q - 1;
+    if (coeff - dn as f32 * step).abs() <= (coeff - up as f32 * step).abs() { dn as f32 * step } else { up as f32 * step }
 }
 
 pub(crate) fn qim_extract_s(coeff: f32, step: f32) -> u8 {
@@ -250,26 +264,37 @@ pub(crate) fn stego_encode_keyed(data: &[u8], carrier: &[u8], width: u32, height
         }
     }
 
-    // Apply luma delta back to RGB (distribute through green channel)
+    // Apply luma delta back to RGB — distribute through G, overflow to R/B
     let mut pixels = carrier.to_vec();
     if pixels.len() < w * h * 4 { pixels.resize(w * h * 4, 255); }
     for i in 0..w * h {
         let off = i * 4;
         let old_y = rgb_to_luma(pixels[off], pixels[off + 1], pixels[off + 2]);
         let delta = luma[i] - old_y;
-        // Apply delta primarily to green (weight 0.587)
-        let new_g = (pixels[off + 1] as f32 + delta / 0.587).round().clamp(0.0, 255.0);
-        pixels[off + 1] = new_g as u8;
+        // Try green first (weight 0.587)
+        let g_raw = pixels[off + 1] as f32 + delta / 0.587;
+        let g_new = g_raw.round().clamp(0.0, 255.0);
+        let g_remainder = (g_raw - g_new) * 0.587; // luma error from clamping
+        pixels[off + 1] = g_new as u8;
+        if g_remainder.abs() > 0.5 {
+            // Distribute remainder to R (0.299) and B (0.114)
+            let r_share = g_remainder * 0.299 / (0.299 + 0.114);
+            let b_share = g_remainder * 0.114 / (0.299 + 0.114);
+            pixels[off] = (pixels[off] as f32 + r_share / 0.299).round().clamp(0.0, 255.0) as u8;
+            pixels[off + 2] = (pixels[off + 2] as f32 + b_share / 0.114).round().clamp(0.0, 255.0) as u8;
+        }
     }
     pixels
 }
 
 // --- Decode ---
 pub(crate) fn stego_decode(pixels: &[u8]) -> Vec<u8> {
+    // Legacy fallback — prefer stego_decode_wh with explicit dimensions
     let num_pixels = pixels.len() / 4;
+    if num_pixels == 0 { return Vec::new(); }
     let w = (num_pixels as f64).sqrt() as usize;
-    let h = num_pixels / w;
-    stego_decode_wh(pixels, w, h)
+    if w == 0 || w * w != num_pixels { return Vec::new(); } // reject non-square
+    stego_decode_wh(pixels, w, w)
 }
 
 pub(crate) fn stego_decode_wh(pixels: &[u8], w: usize, h: usize) -> Vec<u8> {
@@ -324,22 +349,16 @@ pub(crate) fn stego_decode_keyed(pixels: &[u8], w: usize, h: usize, key: u64, jp
     }
 
     // Decode: [CRC-16 (2)] [len (2)] [data]
-    let header_bits = 4 * 7 * 8 / 4; // 4 bytes header → 32 data bits → 56 code bits
+    // Hamming(7,4): 4 header bytes = 32 data bits = 56 code bits
     if bits.len() < 56 { return Vec::new(); }
     let header = hamming_decode(&bits, 4);
-    let crc_got = u16::from_be_bytes([header[0], header[1]]);
     let len = u16::from_be_bytes([header[2], header[3]]) as usize;
-    if len > 100_000 || bits.len() < (4 + len) * 2 * 7 { return Vec::new(); }
+    // Capacity: total code bits / 14 bits per byte (8 data bits → 2 Hamming codewords of 7)
+    let capacity = bits.len() / 14;
+    if len > capacity || bits.len() < (4 + len) * 14 { return Vec::new(); }
 
-    let payload_with_len = hamming_decode(&bits[56..], len + 2);
-    // Verify: payload = [len (2)] [data (len)]
-    let mut check = Vec::with_capacity(2 + len);
-    check.extend_from_slice(&header[2..4]); // len bytes
-    check.extend_from_slice(&payload_with_len[2..2 + len.min(payload_with_len.len().saturating_sub(2))]);
-
-    // Actually, re-decode the full thing at once for CRC check
-    let full_len = 4 + len;
-    let full = hamming_decode(&bits, full_len);
+    // Decode full payload and verify CRC
+    let full = hamming_decode(&bits, 4 + len);
     let crc_stored = u16::from_be_bytes([full[0], full[1]]);
     let crc_check = crc16(&full[2..]);
     if crc_stored != crc_check { return Vec::new(); }
