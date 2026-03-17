@@ -139,6 +139,23 @@ canvas{border:1px solid #333;margin:.3em 0}
 </div>
 <div id="store-list"></div>
 
+<h2>🔢 FRACTRAN</h2>
+<div class="row">
+  <input type="text" id="fractran-prog" placeholder="Program: 3/2, 1/3, ..." style="flex:2">
+  <input type="text" id="fractran-state" placeholder="State" value="108" style="width:5em">
+  <button onclick="doFractranLoad()">Load</button>
+  <button onclick="doFractranRun()">▶ Run</button>
+  <button onclick="doFractranStep()">Step</button>
+</div>
+<div class="out" id="fractran-out" style="max-height:8em;overflow:auto"></div>
+
+<h2>📦 CBOR</h2>
+<div class="row">
+  <button onclick="doCborExport()">Export triples → CBOR</button>
+  <button onclick="doCborImport()">Import CBOR → triples</button>
+</div>
+<div class="out" id="cbor-out" style="max-height:4em;overflow:auto;word-break:break-all"></div>
+
 <h2>🔗 Pipeline URL</h2>
 <div class="row">
   <button onclick="doShareUrl()">📤 Share URL</button>
@@ -268,6 +285,10 @@ const OPS = {
   ipfs:     () => { const cid = pad.ipfs_put(new TextEncoder().encode(val()), 'text/plain'); return cid; },
   ntriples: () => triples.to_ntriples(),
   rdfa:     () => triples.to_rdfa(),
+  cbor:     () => { const b = triples.to_cbor(); return btoa(String.fromCharCode(...b)); },
+  decbor:   () => { const b = Uint8Array.from(atob(val()), c => c.charCodeAt(0)); return triples.from_cbor(b) + ' triples imported'; },
+  fractran: () => { const h = triples.fractran_run(1000); return h; },
+  fload:    () => { const n = triples.fractran_load(val(), 2); return n + ' triples loaded'; },
 };
 
 // Run a pipeline: comma-separated ops or RDFa triple graph
@@ -827,6 +848,46 @@ window.doSyncPastebin = async () => {
     } catch(e) {}
   }
   set('ipfs-out', `Synced ${ok}/${cids.length} blocks to pastebin`);
+};
+
+// -- FRACTRAN --
+window.doFractranLoad = () => {
+  const prog = $('fractran-prog').value.trim();
+  const state = parseInt($('fractran-state').value) || 2;
+  if (!prog) { set('fractran-out', '⚠ Enter fractions: 3/2, 1/3, ...'); return; }
+  triples.clear();
+  const n = triples.fractran_load(prog, state);
+  set('fractran-out', `Loaded ${n} triples (state=${state})`);
+};
+window.doFractranRun = () => {
+  const history = JSON.parse(triples.fractran_run(1000));
+  const powers = history.filter(s => s > 1 && (s & (s-1)) === 0).map(s => Math.log2(s));
+  let out = `${history.length} steps: ${history.slice(0,20).join(' → ')}`;
+  if (history.length > 20) out += ` … → ${history[history.length-1]}`;
+  if (powers.length) out += `\nPowers of 2 found: 2^${powers.join(', 2^')}`;
+  set('fractran-out', out);
+};
+window.doFractranStep = () => {
+  const state = parseInt($('fractran-state').value) || 2;
+  const next = triples.fractran_step(state);
+  if (next === 0) { set('fractran-out', `HALT at ${state}`); return; }
+  $('fractran-state').value = next;
+  set('fractran-out', `${state} → ${next}`);
+};
+
+// -- CBOR --
+window.doCborExport = () => {
+  const bytes = triples.to_cbor();
+  const b64 = btoa(String.fromCharCode(...bytes));
+  set('cbor-out', `${bytes.length} bytes CBOR → ${b64.length} chars base64`);
+  $('input').value = b64;
+};
+window.doCborImport = () => {
+  try {
+    const bytes = Uint8Array.from(atob(val()), c => c.charCodeAt(0));
+    const n = triples.from_cbor(bytes);
+    set('cbor-out', `Imported ${n} triples from ${bytes.length} bytes CBOR`);
+  } catch(e) { set('cbor-out', '❌ ' + e.message); }
 };
 
 // -- Auto-IPFS on encode --

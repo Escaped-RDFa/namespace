@@ -479,6 +479,48 @@ impl TripleStore {
         if let Some(s) = storage() { let _ = s.remove_item("erdfa:triples"); }
     }
 
+    /// Export triples as CBOR bytes
+    pub fn to_cbor(&self) -> Vec<u8> {
+        let all = self.load_all();
+        let tuples: Vec<(String, String, String)> = all.into_iter().map(|t| (t.s, t.p, t.o)).collect();
+        codec::cbor::encode_triples(&tuples)
+    }
+
+    /// Import triples from CBOR bytes, returns count
+    pub fn from_cbor(&self, data: &[u8]) -> u32 {
+        let triples = codec::cbor::decode_triples(data);
+        for (s, p, o) in &triples { self.add(s, p, o); }
+        triples.len() as u32
+    }
+
+    /// Run FRACTRAN: extract program from triples, step from state, return new state (0 = halt)
+    pub fn fractran_step(&self, state: u64) -> u64 {
+        let all = self.load_all();
+        let tuples: Vec<(String, String, String)> = all.iter().map(|t| (t.s.clone(), t.p.clone(), t.o.clone())).collect();
+        let program = codec::fractran::program_from_triples(&tuples);
+        codec::fractran::step(state, &program).unwrap_or(0)
+    }
+
+    /// Run FRACTRAN program from triples for max_steps, return history as JSON array
+    pub fn fractran_run(&self, max_steps: u32) -> String {
+        let all = self.load_all();
+        let tuples: Vec<(String, String, String)> = all.iter().map(|t| (t.s.clone(), t.p.clone(), t.o.clone())).collect();
+        let program = codec::fractran::program_from_triples(&tuples);
+        let initial = codec::fractran::state_from_triples(&tuples).unwrap_or(2);
+        let history = codec::fractran::run(initial, &program, max_steps as usize);
+        serde_json::to_string(&history).unwrap_or("[]".into())
+    }
+
+    /// Load a FRACTRAN program into triples
+    pub fn fractran_load(&self, program: &str, state: u64) -> u32 {
+        let fractions: Vec<(u64, u64)> = program.split(',')
+            .filter_map(|s| codec::fractran::parse_fraction(s.trim()))
+            .collect();
+        let triples = codec::fractran::program_to_triples("_:fractran", &fractions, state);
+        for (s, p, o) in &triples { self.add(s, p, o); }
+        triples.len() as u32
+    }
+
     fn load_all(&self) -> Vec<Triple> {
         storage()
             .and_then(|s| s.get_item("erdfa:triples").ok()?)

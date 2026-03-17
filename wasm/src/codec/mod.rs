@@ -6,3 +6,6 @@ pub mod morse;
 pub mod bbs;
 pub mod stego;
 pub mod store;
+pub mod cbor;
+pub mod fractran;
+pub mod dasl;
