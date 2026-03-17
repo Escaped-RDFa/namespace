@@ -156,6 +156,28 @@ canvas{border:1px solid #333;margin:.3em 0}
 </div>
 <div class="out" id="cbor-out" style="max-height:4em;overflow:auto;word-break:break-all"></div>
 
+<h2>✂️ Split / Join</h2>
+<div class="row">
+  <input type="number" id="chunk-size" value="10" min="1" style="width:4em" title="Triples per chunk">
+  <button onclick="doSplit()">✂️ Split</button>
+  <button onclick="doJoin()">🔗 Join</button>
+</div>
+<div class="out" id="split-out" style="max-height:8em;overflow:auto;word-break:break-all"></div>
+
+<h2>📜 Shard Loader</h2>
+<div class="row">
+  <input type="file" id="shard-file" accept=".cbor,.tar,.json" onchange="doLoadShardFile(this)">
+  <button onclick="doLoadShardUrl()">📥 Load URL</button>
+  <button onclick="doShardStatus()">📊 Status</button>
+</div>
+<div id="shard-progress" style="margin:.3em 0">
+  <div style="background:#333;border-radius:4px;height:1.2em;position:relative">
+    <div id="shard-bar" style="background:#4a4;height:100%;border-radius:4px;width:0%;transition:width .3s"></div>
+    <span id="shard-label" style="position:absolute;left:50%;top:0;transform:translateX(-50%);font-size:.8em;color:#fff">0 / ? shards</span>
+  </div>
+</div>
+<div class="out" id="shard-out" style="max-height:6em;overflow:auto;word-break:break-all"></div>
+
 <h2>🔗 Pipeline URL</h2>
 <div class="row">
   <button onclick="doShareUrl()">📤 Share URL</button>
@@ -289,6 +311,8 @@ const OPS = {
   decbor:   () => { const b = Uint8Array.from(atob(val()), c => c.charCodeAt(0)); return triples.from_cbor(b) + ' triples imported'; },
   fractran: () => { const h = triples.fractran_run(1000); return h; },
   fload:    () => { const n = triples.fractran_load(val(), 2); return n + ' triples loaded'; },
+  split:    () => { const n = parseInt(val()) || 10; return triples.split(n); },
+  join:     () => { const n = triples.join(val()); return n + ' triples joined'; },
 };
 
 // Run a pipeline: comma-separated ops or RDFa triple graph
@@ -888,6 +912,131 @@ window.doCborImport = () => {
     const n = triples.from_cbor(bytes);
     set('cbor-out', `Imported ${n} triples from ${bytes.length} bytes CBOR`);
   } catch(e) { set('cbor-out', '❌ ' + e.message); }
+};
+
+window.doSplit = () => {
+  const n = parseInt(document.getElementById('chunk-size').value) || 10;
+  const json = triples.split(n);
+  const chunks = JSON.parse(json);
+  const manifest = chunks.find(c => c.manifest);
+  set('split-out', `✂️ ${manifest ? manifest.chunks : '?'} chunks → ${json.length} chars`);
+  $('input').value = json;
+};
+window.doJoin = () => {
+  try {
+    const n = triples.join(val());
+    set('split-out', `🔗 Joined ${n} triples`);
+  } catch(e) { set('split-out', '❌ ' + e.message); }
+};
+
+// -- Shard Loader --
+const shardState = { loaded: new Set(), expected: null, manifest: null };
+
+function updateShardProgress() {
+  const n = shardState.loaded.size;
+  const total = shardState.expected || '?';
+  const pct = shardState.expected ? Math.round(100 * n / shardState.expected) : 0;
+  document.getElementById('shard-bar').style.width = pct + '%';
+  document.getElementById('shard-label').textContent = `${n} / ${total} shards`;
+  if (shardState.expected && n >= shardState.expected) {
+    document.getElementById('shard-bar').style.background = '#4a4';
+    set('shard-out', `✅ Complete! All ${n} shards loaded. ${triples.list().length} triples in store.`);
+  }
+}
+
+function importCborB64(b64) {
+  const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const n = triples.from_cbor(bytes);
+  // Compute CID for tracking
+  const cid = pad.cid(b64);
+  shardState.loaded.add(cid);
+  // Check if this is a manifest
+  const json = triples.list();
+  try {
+    const all = JSON.parse(json);
+    const exp = all.find(t => t.p === 'erdfa:expected');
+    if (exp) shardState.expected = parseInt(exp.o);
+    const name = all.find(t => t.p === 'erdfa:name');
+    if (name) shardState.manifest = name.o;
+  } catch(e) {}
+  updateShardProgress();
+  return n;
+}
+
+window.doLoadShardFile = (input) => {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const bytes = new Uint8Array(reader.result);
+    if (file.name.endsWith('.tar')) {
+      // Parse tar: extract .cbor files
+      let pos = 0, count = 0;
+      while (pos + 512 <= bytes.length) {
+        const name = new TextDecoder().decode(bytes.slice(pos, pos + 100)).replace(/\0/g, '');
+        if (!name) break;
+        const sizeStr = new TextDecoder().decode(bytes.slice(pos + 124, pos + 135)).replace(/\0/g, '');
+        const size = parseInt(sizeStr, 8) || 0;
+        pos += 512;
+        if (name.endsWith('.cbor') && size > 0) {
+          const cbor = bytes.slice(pos, pos + size);
+          const n = triples.from_cbor(cbor);
+          const cid = pad.cid(btoa(String.fromCharCode(...cbor)));
+          shardState.loaded.add(cid);
+          count += n;
+        }
+        pos += Math.ceil(size / 512) * 512;
+      }
+      updateShardProgress();
+      set('shard-out', `📦 Tar: ${shardState.loaded.size} shards, ${count} triples`);
+    } else if (file.name.endsWith('.json')) {
+      // Manifest JSON with b64 data
+      try {
+        const manifest = JSON.parse(new TextDecoder().decode(bytes));
+        shardState.expected = manifest.expected || manifest.shards?.length;
+        let count = 0;
+        for (const s of (manifest.shards || [])) {
+          if (s.b64) count += importCborB64(s.b64);
+        }
+        set('shard-out', `📋 Manifest: ${manifest.name}, ${count} triples`);
+      } catch(e) { set('shard-out', '❌ ' + e.message); }
+    } else {
+      // Raw CBOR
+      const n = triples.from_cbor(bytes);
+      const cid = pad.cid(btoa(String.fromCharCode(...bytes)));
+      shardState.loaded.add(cid);
+      updateShardProgress();
+      set('shard-out', `📜 Shard: ${n} triples`);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+};
+
+window.doLoadShardUrl = () => {
+  const url = val();
+  if (!url) return set('shard-out', 'Paste a shard URL or base64 CBOR');
+  if (url.startsWith('http')) {
+    // It's a composable eRDFa URL — just run it
+    const params = new URLSearchParams(url.split('?')[1] || '');
+    const text = params.get('text');
+    if (text) {
+      const n = importCborB64(text);
+      set('shard-out', `📥 URL shard: ${n} triples`);
+    }
+  } else {
+    // Assume base64 CBOR
+    try {
+      const n = importCborB64(url);
+      set('shard-out', `📥 Shard: ${n} triples`);
+    } catch(e) { set('shard-out', '❌ ' + e.message); }
+  }
+};
+
+window.doShardStatus = () => {
+  const n = shardState.loaded.size;
+  const total = shardState.expected || '?';
+  const name = shardState.manifest || 'unnamed';
+  set('shard-out', `📊 "${name}": ${n}/${total} shards loaded`);
 };
 
 // -- Auto-IPFS on encode --

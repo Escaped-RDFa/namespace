@@ -9,6 +9,13 @@ repository = "https://github.com/Escaped-RDFa/namespace"
 keywords = ["rdfa", "semantic-web", "metadata", "rdf"]
 categories = ["parser-implementations", "web-programming"]
 
+[[bin]]
+name = "erdfa"
+path = "src/bin/erdfa.rs"
+
 [dependencies]
 
 [dev-dependencies]
+
+[workspace]
+members = ["wasm", "publish"]

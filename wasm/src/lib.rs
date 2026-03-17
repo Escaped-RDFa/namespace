@@ -521,6 +521,52 @@ impl TripleStore {
         triples.len() as u32
     }
 
+    /// Split triples into CBOR chunks. Returns JSON: [{cid, data (base64)},..., {manifest}]
+    pub fn split(&self, chunk_size: u32) -> String {
+        let all = self.load_all();
+        let chunk_size = (chunk_size as usize).max(1);
+        let tuples: Vec<(String, String, String)> = all.into_iter()
+            .map(|t| (t.s, t.p, t.o)).collect();
+        let chunks: Vec<&[(String, String, String)]> = tuples.chunks(chunk_size).collect();
+        let mut result = Vec::new();
+        let mut manifest_triples = Vec::new();
+        for (i, chunk) in chunks.iter().enumerate() {
+            let cbor = codec::cbor::encode_triples(chunk);
+            let cid = content_cid(&cbor);
+            let b64 = B64.encode(&cbor);
+            result.push(serde_json::json!({"cid": cid, "data": b64, "index": i, "count": chunk.len()}));
+            manifest_triples.push((
+                "_:manifest".to_string(),
+                format!("erdfa:chunk:{}", i),
+                cid,
+            ));
+        }
+        // Append manifest entry
+        let manifest_cbor = codec::cbor::encode_triples(&manifest_triples);
+        let manifest_cid = content_cid(&manifest_cbor);
+        let manifest_b64 = B64.encode(&manifest_cbor);
+        result.push(serde_json::json!({
+            "cid": manifest_cid, "data": manifest_b64,
+            "manifest": true, "chunks": chunks.len()
+        }));
+        serde_json::to_string(&result).unwrap_or("[]".into())
+    }
+
+    /// Join: import from array of base64 CBOR chunks. Returns total triples imported.
+    pub fn join(&self, chunks_json: &str) -> u32 {
+        let arr: Vec<serde_json::Value> = serde_json::from_str(chunks_json).unwrap_or_default();
+        let mut count = 0u32;
+        for item in &arr {
+            if item.get("manifest").and_then(|v| v.as_bool()).unwrap_or(false) { continue; }
+            if let Some(b64) = item.get("data").and_then(|v| v.as_str()) {
+                if let Ok(cbor) = B64.decode(b64) {
+                    count += self.from_cbor(&cbor);
+                }
+            }
+        }
+        count
+    }
+
     fn load_all(&self) -> Vec<Triple> {
         storage()
             .and_then(|s| s.get_item("erdfa:triples").ok()?)
