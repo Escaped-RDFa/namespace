@@ -18,4 +18,4 @@ path = "src/bin/erdfa.rs"
 [dev-dependencies]
 
 [workspace]
-members = ["wasm", "publish"]
+members = ["wasm", "publish-rs"]
