@@ -177,6 +177,8 @@ canvas{border:1px solid #333;margin:.3em 0}
   </div>
 </div>
 <div class="out" id="shard-out" style="max-height:6em;overflow:auto;word-break:break-all"></div>
+<button onclick="doRenderShards()" style="margin:.3em 0">🔍 Render Shards</button>
+<div id="shard-render" style="max-height:20em;overflow:auto;font-size:.85em"></div>
 
 <h2>🔗 Pipeline URL</h2>
 <div class="row">
@@ -1037,6 +1039,81 @@ window.doShardStatus = () => {
   const total = shardState.expected || '?';
   const name = shardState.manifest || 'unnamed';
   set('shard-out', `📊 "${name}": ${n}/${total} shards loaded`);
+};
+
+window.doRenderShards = () => {
+  const all = JSON.parse(triples.list());
+  // Group by subject
+  const bySubj = {};
+  for (const t of all) {
+    (bySubj[t.s] = bySubj[t.s] || []).push(t);
+  }
+  const el = document.getElementById('shard-render');
+  let html = '';
+  for (const [subj, ts] of Object.entries(bySubj)) {
+    const typeT = ts.find(t => t.p === 'rdf:type');
+    const typ = typeT ? typeT.o : '';
+    // Proto message
+    if (typ === 'proto:Message') {
+      const pkg = ts.find(t => t.p === 'proto:package');
+      const props = ts.filter(t => t.p === 'rdfa:properties');
+      html += `<div style="border:1px solid #555;margin:4px;padding:4px;border-radius:4px">`;
+      html += `<b style="color:#6cf">📦 ${subj.split(':').pop()}</b>`;
+      if (pkg) html += ` <span style="color:#888">(${pkg.o})</span>`;
+      if (props.length) {
+        html += `<table style="width:100%;font-size:.85em;margin-top:2px"><tr style="color:#aaa"><td>field</td><td>type</td><td>#</td></tr>`;
+        for (const p of props) {
+          try {
+            const f = JSON.parse(p.o);
+            html += `<tr><td>${f.name}</td><td style="color:#8d8">${f.type||f.proto_type}</td><td>${f.number}</td></tr>`;
+          } catch(e) {}
+        }
+        html += `</table>`;
+      }
+      html += `</div>`;
+    // Proto service
+    } else if (typ === 'proto:Service') {
+      const rpcs = ts.filter(t => t.p === 'proto:rpcs');
+      html += `<div style="border:1px solid #a86;margin:4px;padding:4px;border-radius:4px">`;
+      html += `<b style="color:#fa5">⚡ ${subj.split(':').pop()}</b> <span style="color:#888">${rpcs.length} RPCs</span>`;
+      if (rpcs.length) {
+        html += `<div style="font-size:.8em;margin-top:2px">`;
+        for (const r of rpcs.slice(0, 20)) {
+          try {
+            const rpc = JSON.parse(r.o);
+            html += `<div>${rpc.name}(<span style="color:#8d8">${rpc.input.split(':').pop()}</span>) → <span style="color:#8cf">${rpc.output.split(':').pop()}</span></div>`;
+          } catch(e) {}
+        }
+        if (rpcs.length > 20) html += `<div style="color:#888">...+${rpcs.length-20} more</div>`;
+        html += `</div>`;
+      }
+      html += `</div>`;
+    // Parquet schema
+    } else if (typ === 'parquet:Schema') {
+      const cols = ts.filter(t => t.p === 'rdfa:properties');
+      html += `<div style="border:1px solid #86a;margin:4px;padding:4px;border-radius:4px">`;
+      html += `<b style="color:#c8f">📊 ${subj.split(':').pop()}</b>`;
+      if (cols.length) {
+        try {
+          const c = JSON.parse(cols[0].o);
+          if (Array.isArray(c)) {
+            html += `<div style="font-size:.8em">${c.map(x => `<span style="color:#8d8">${x.name}</span>:${x.type}`).join(', ')}</div>`;
+          }
+        } catch(e) {}
+      }
+      html += `</div>`;
+    // Parquet row
+    } else if (typ === 'parquet:Row') {
+      const fields = ts.filter(t => t.p.startsWith('parquet:') && t.p !== 'parquet:schema' && t.p !== 'parquet:index');
+      html += `<div style="border:1px solid #446;margin:2px;padding:2px;font-size:.8em">`;
+      html += `<span style="color:#888">row</span> `;
+      html += fields.slice(0, 8).map(f => `${f.p.replace('parquet:','')}=<span style="color:#8cf">${String(f.o).slice(0,30)}</span>`).join(' ');
+      if (fields.length > 8) html += ` +${fields.length-8}`;
+      html += `</div>`;
+    }
+  }
+  if (!html) html = `<div style="color:#888">${Object.keys(bySubj).length} subjects, no proto/parquet types detected</div>`;
+  el.innerHTML = html;
 };
 
 // -- Auto-IPFS on encode --

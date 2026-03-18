@@ -1,0 +1,42 @@
+[package]
+name = "erdfa-relay"
+version = "0.1.0"
+edition = "2021"
+description = "ActivityPub federation + RSS feeds for CID-addressed CBOR shard relay"
+
+[dependencies]
+# HTTP server
+axum = { version = "0.7", features = ["macros"] }
+tokio = { version = "1", features = ["full"] }
+tower-http = { version = "0.5", features = ["cors"] }
+
+# ActivityPub federation (from Lemmy)
+activitypub_federation = "0.6"
+activitystreams-kinds = "0.3"
+url = "2"
+
+# RSS/Atom feed generation
+rss = "2"
+
+# RabbitMQ
+lapin = "2"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# CBOR (wire-compatible with erdfa-publish)
+ciborium = "0.2"
+
+# Crypto for CIDs
+sha2 = "0.10"
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Async streams
+futures-lite = "2"
