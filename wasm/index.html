@@ -187,6 +187,14 @@ canvas{border:1px solid #333;margin:.3em 0}
 <div class="out" id="pipe-out" style="max-height:6em;overflow:auto;white-space:pre"></div>
 <div id="render-out" style="margin:.3em 0"></div>
 
+<h2>📋 Pastebin</h2>
+<div class="row">
+  <button onclick="postToPastebin()">📤 Post Text</button>
+  <button onclick="postStegoToPastebin()">📤 Post Stego Image</button>
+  <button onclick="postAllToPastebin()">📤 Post All Outputs</button>
+</div>
+<div class="out" id="paste-out"></div>
+
 <h2>🔗 RDFa Triples</h2>
 <div class="row" style="gap:.3em">
   <input type="text" id="t-s" placeholder="Subject (URI)" style="flex:1">
@@ -1074,6 +1082,52 @@ window.doStegoEnc = () => {
       set('stego-out', $('stego-out').textContent + ' → IPFS: ' + cid);
     });
   }, 'image/png');
+};
+
+// -- Pastebin integration --
+// Load content from pastebin via localStorage
+const _stegoInput = localStorage.getItem('stego-input');
+if (_stegoInput) { localStorage.removeItem('stego-input'); $('input').value = _stegoInput; }
+
+window.postToPastebin = () => {
+  const content = val();
+  if (!content) { set('paste-out', '⚠️ No input'); return; }
+  const pbUrl = (window._pastebin_base || '') + '/paste';
+  fetch(pbUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content, keywords: 'stego,erdfa' }) })
+    .then(r => r.json())
+    .then(d => { $('paste-out').innerHTML = '✅ <a href="' + pbUrl + '/' + d.id + '" style="color:#0ff">' + d.id + '</a>'; })
+    .catch(e => { set('paste-out', '❌ ' + e); });
+};
+
+window.postStegoToPastebin = () => {
+  const c = $('stego-canvas');
+  if (!c) { set('paste-out', '⚠️ No stego image'); return; }
+  const pbBase = window._pastebin_base || '';
+  c.toBlob(blob => {
+    const fd = new FormData(); fd.append('file', blob, 'stego.png');
+    fd.append('title', 'stego-encoded'); fd.append('keywords', 'stego,erdfa,image');
+    fetch(pbBase + '/upload', { method: 'POST', body: fd })
+      .then(r => r.json())
+      .then(d => { $('paste-out').innerHTML = '✅ <a href="' + pbBase + '/paste/' + d.id + '" style="color:#0ff">' + d.id + '</a>'; })
+      .catch(e => { set('paste-out', '❌ ' + e); });
+  }, 'image/png');
+};
+
+window.postAllToPastebin = () => {
+  const parts = [];
+  ['morse-out','bbs-out','num-groups','tape-out','stego-out','url-out','qr-out'].forEach(id => {
+    const el = $(id);
+    if (el && el.textContent.trim()) parts.push('## ' + id + '\n' + el.textContent);
+  });
+  if (!parts.length) { set('paste-out', '⚠️ No outputs'); return; }
+  const content = '# eRDFa Stego Export\n\nSource: ' + val().substring(0, 100) + '...\n\n' + parts.join('\n\n');
+  const pbUrl = (window._pastebin_base || '') + '/paste';
+  fetch(pbUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content, keywords: 'stego,erdfa,export' }) })
+    .then(r => r.json())
+    .then(d => { $('paste-out').innerHTML = '✅ <a href="' + pbUrl + '/' + d.id + '" style="color:#0ff">' + d.id + '</a>'; })
+    .catch(e => { set('paste-out', '❌ ' + e); });
 };
 </script>
 </body>
